@@ -7,20 +7,22 @@
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 BUCKET = s3://
 PROFILE = default
-PROJECT_NAME = myproject
+PROJECT_NAME = da_bfd
+ENVNAME = mlenv
 PYTHON_INTERPRETER = python3
+SHELL := /usr/bin/zsh
 
-ifeq (,$(shell which conda))
-HAS_CONDA=False
-else
-HAS_CONDA=True
-endif
 
 #################################################################################
 # COMMANDS                                                                      #
 #################################################################################
 
 ## Install Python Dependencies
+activate_env:
+	source $(HOME)/$(ENVNAME)/bin/activate
+	pip3 freeze > requirements.txt  # Python3
+
+
 build_environment:
 	$(PYTHON_INTERPRETER) -m pip install -U pip setuptools wheel
 	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
@@ -36,43 +38,10 @@ clean:
 lint:
 	flake8 src
 
-## Upload Data to S3
-sync_data_to_s3:
-ifeq (default,$(PROFILE))
-	aws s3 sync data/ s3://$(BUCKET)/data/
-else
-	aws s3 sync data/ s3://$(BUCKET)/data/ --profile $(PROFILE)
-endif
-
-## Download Data from S3
-sync_data_from_s3:
-ifeq (default,$(PROFILE))
-	aws s3 sync s3://$(BUCKET)/data/ data/
-else
-	aws s3 sync s3://$(BUCKET)/data/ data/ --profile $(PROFILE)
-endif
-
-## Set up python interpreter environment
-create_environment:
-ifeq (True,$(HAS_CONDA))
-		@echo ">>> Detected conda, creating conda environment."
-ifeq (3,$(findstring 3,$(PYTHON_INTERPRETER)))
-	conda create --name $(PROJECT_NAME) python=3
-else
-	conda create --name $(PROJECT_NAME) python=2.7
-endif
-		@echo ">>> New conda env created. Activate with:\nsource activate $(PROJECT_NAME)"
-else
-
-	python3 -m venv $(PROJECT_NAME) $$HOME/.env/$(PROJECT_NAME)
-	@echo ">>> New virtualenv created. Activate with:\nsource $$HOME/.env/$(PROJECT_NAME)/bin/activate"
-endif
 
 #################################################################################
 # PROJECT RULES                                                                 #
 #################################################################################
-## Run experiments
-run_experimnents:
 
 
 #################################################################################
