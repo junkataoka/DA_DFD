@@ -35,15 +35,14 @@ class WAVATAR(nn.Module):
             nn.MaxPool1d(kernel_size=2, stride=2),
         )
 
-        # Dense layer  全连接层
         self.fc = nn.Sequential(
-            nn.Linear(in_features=192, out_features=100),
+            nn.Linear(in_features=192, out_features=192),
             nn.ReLU(),
-            nn.Linear(in_features=100, out_features=100),
+            nn.Linear(in_features=192, out_features=192),
             nn.ReLU()
         )
         self.classifier = nn.Sequential(
-            nn.Linear(in_features=100, out_features=class_num+1),
+            nn.Linear(in_features=192, out_features=class_num+1),
             nn.Softmax(dim=1)
         )
 
@@ -53,7 +52,7 @@ class WAVATAR(nn.Module):
         # self.domain_classifier.add_module('d_classifier', nn.Linear(in_features=100, out_features=2))
         # self.domain_classifier.add_module('d-softmax', nn.LogSoftmax(dim=1))
 
-    def forward(self, x, alpha):
+    def forward(self, x):
         # print("x shape: ", x.shape)
         x = self.net(x)
         # print("x shape: ", x.shape)
@@ -63,7 +62,7 @@ class WAVATAR(nn.Module):
         class_output = self.classifier(x)
 
         prob_p_dis = class_output[:, -1].unsqueeze(1)
-        prob_p_class = torch.log(class_output[:, :-1])
-        prob_p_class = torch.log(prob_p_class / (1-prob_p_dis))
+        prob_p_class = class_output[:, :-1]
+        prob_p_class = prob_p_class / (1-prob_p_dis)
 
-        return prob_p_class, prob_p_dis
+        return prob_p_class, prob_p_dis, x

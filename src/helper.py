@@ -5,14 +5,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy.io
+import torch
 # Others
 from pathlib import Path
-from tqdm.auto import tqdm
-import requests
 import os
 from glob import glob
 from torch.nn.init import xavier_uniform_
 import math
+import gc
 
 def matfile_to_dic(folder_path):
     '''
@@ -143,7 +143,7 @@ def get_df_all(df, segment_length=512, normalize=False):
     df_processed['label'] = df_processed['label'].map(map_label)
     return df_processed
 
-def count_epoch_on_large_dataset(train_loader_target, train_loader_source):
+def count_batch_on_large_dataset(train_loader_target, train_loader_source):
     batch_number_t = len(train_loader_target)
     batch_number = batch_number_t
     batch_number_s = len(train_loader_source)
@@ -172,14 +172,52 @@ def adjust_learning_rate(optimizer, lr, cur_epoch, epochs):
         
     return lr
 
-def obrain_params(model):
+def get_params(model, param_name):
     params = list()
-
-    for k, v in model.named_parameters():
-        if "fc" in k:
-            params += [{'params': v, 'name': "fc"}]
-        elif "classifier" in k:
-            params += [{'params': v, 'name': "classifier"}]
-        else:
-            params += [{'params': v, 'name': "feature"}]
+    for p in param_name:
+        for k, v in model.named_parameters():
+            if p in k:
+                params += [{'params': v, 'name': p}]
     return params
+
+
+def compute_weights(features, targets, index, cen):
+    # compute source weights
+    cos_sim_temp = features.unsqueeze(1) * cen.unsqueeze(0)
+    cos_sim = 0.5 * (1 + cos_sim_temp.sum(2) / (features.norm(2, dim=1, keepdim=True) * cen.norm(2, dim=1, keepdim=True).t() + 1e-6))
+    cs = torch.gather(cos_sim, 1, targets.unsqueeze(1)).squeeze(1)
+    cs = cs[index]
+
+    del cos_sim_temp
+    gc.collect()
+    torch.cuda.empty_cache()
+    torch.cuda.empty_cache()
+
+    return cs
+
+def compute_threthold(weights, targets, num_classes):
+
+    m = torch.zeros((targets.size(0), num_classes)).fill_(0).cuda()
+    sd = torch.zeros((targets.size(0), num_classes)).fill_(0).cuda()
+    m.scatter_(dim=1, index=targets.unsqueeze(1), src=weights.unsqueeze(1).cuda()) # assigned pseudo labels
+    sd.scatter_(dim=1, index=targets.unsqueeze(1), src=weights.unsqueeze(1).cuda()) # assigned pseudo labels
+    th = torch.zeros(num_classes).cuda()
+
+    for i in range(num_classes):
+        mu = m[m[:, i] != 0, i].mean()
+        sdv = sd[sd[:, i] != 0, i].std()
+        th[i] = mu - sdv
+    
+    return th
+
+
+def get_tensor_dimensions_impl(model, layer, image_size, for_input=False):
+    t_dims = None
+    def _local_hook(_, _input, _output):
+        nonlocal t_dims
+        t_dims = _input[0].size() if for_input else _output.size()
+        return _output    
+    layer.register_forward_hook(_local_hook)
+    dummy_var = torch.zeros(1, 3, image_size, image_size)
+    model(dummy_var)
+    return t_dims

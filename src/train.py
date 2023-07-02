@@ -1,15 +1,8 @@
 import torch
 import numpy as np
-import torch.nn as nn
-import argparse
-from models.wdcnn import WDCNN1
 from torch.nn.init import xavier_uniform_
-import matplotlib.pylab as plt
-import wandb
-import os
-from matplotlib.ticker import FuncFormatter
-import math
 from helper import adjust_learning_rate
+from losses import srcClassifyLoss, tarClassifyLoss, adversarialLoss
 
 hyperparameter_defaults = dict(
     epochs=70,
@@ -40,111 +33,87 @@ def batch_norm_init(m):
         m.reset_running_stats()
 
 
-def generate_dataset(data_dir, src_data, tar_data, src_domain, tar_domain):
-    src_path = os.path.join(data_dir, src_data, f"{src_domain}.npz")
-    tar_path = os.path.join(data_dir, tar_data, f"{tar_domain}.npz")
-    src_x = np.load(src_path)['x']
-    src_y = np.load(src_path)['y']
-    tar_x = np.load(tar_path)['x']
-    tar_y = np.load(tar_path)['y']
-    src_dataset = torch.utils.data.TensorDataset(torch.from_numpy(src_x).float(), 
-                                                 torch.from_numpy(src_y).long())   
-    tar_dataset = torch.utils.data.TensorDataset(torch.from_numpy(tar_x).float(), 
-                                                 torch.from_numpy(tar_y).long())
-    return src_dataset, tar_dataset 
-
-def train_wdcnn_batch(model, src_train_batch, tar_train_batch, 
-                          src_train_dataloader, tar_train_dataloader, optimizer,
-                          lr, cur_epoch, epochs, batch_size,
-                          criterion, log_metrics):
-
-    try:
-        (src_input, src_target) = src_train_batch.__next__()[1]
-    except StopIteration:
-        src_train_batch = enumerate(src_train_dataloader)
-        (src_input, src_target) = src_train_batch.__next__()[1]
-
-    try:
-        (tar_input, tar_target) = tar_train_batch.__next__()[1]
-    except StopIteration:
-        tar_train_batch = enumerate(tar_train_dataloader)
-        (tar_input, tar_target) = tar_train_batch.__next__()[1]
-
-    optimizer.zero_grad()
-    src_input = src_input.unsqueeze(1).float().cuda()
-    src_target = src_target.long().cuda()
-    tar_input = tar_input.unsqueeze(1).float().cuda()
-    tar_target = tar_target.long().cuda()
-    s_domain_label = torch.zeros(batch_size).long().cuda()
-    t_domain_label = torch.ones(batch_size).long().cuda()
-
-    # penalty parameter
-    #lam = 2 / (1 + math.exp(-1 * 10 * cur_epoch / epochs)) - 1 
-    adjust_learning_rate(optimizer, lr, cur_epoch, epochs) # adjust learning rate
-
-    model.train()
-    p = float(cur_epoch) / 20
-    alpha = 2. / (1. + np.exp(-10 * p)) - 1
-    s_out_train, s_domain_out = model(src_input, alpha)
-    _, t_domain_out = model(tar_input, alpha)
-    loss_domain_s = criterion(s_domain_out, s_domain_label)
-    loss_domain_t = criterion(t_domain_out, t_domain_label)
-
-    loss_c = criterion(s_out_train, src_target)
-    # loss = loss_c 
-    loss = loss_c + (loss_domain_s + loss_domain_t)*0.5
-    loss.backward()
-    optimizer.step()
-
-    log_metrics["loss_c"] = loss_c.item()
-    log_metrics["loss_domain_s"] = loss_domain_s.item()
-    log_metrics["loss_domain_t"] = loss_domain_t.item()
-    log_metrics["loss"] = loss.item()
 
 def train_avatar_batch(model, src_train_batch, tar_train_batch, 
-                          src_train_dataloader, tar_train_dataloader, optimizer,
-                          lr, cur_epoch, epochs, batch_size,
-                          criterion, log_metrics):
+                        src_train_dataloader, tar_train_dataloader, 
+                        optimizer_dict, cur_epoch, logger, val_dict, args):
 
     try:
-        (src_input, src_target) = src_train_batch.__next__()[1]
+        (src_idx, src_input, src_target) = src_train_batch.__next__()[1]
     except StopIteration:
         src_train_batch = enumerate(src_train_dataloader)
-        (src_input, src_target) = src_train_batch.__next__()[1]
+        (src_idx, src_input, src_target) = src_train_batch.__next__()[1]
 
     try:
-        (tar_input, tar_target) = tar_train_batch.__next__()[1]
+        (tar_idx, tar_input, tar_target) = tar_train_batch.__next__()[1]
     except StopIteration:
         tar_train_batch = enumerate(tar_train_dataloader)
-        (tar_input, tar_target) = tar_train_batch.__next__()[1]
+        (tar_idx, tar_input, tar_target) = tar_train_batch.__next__()[1]
 
-    optimizer.zero_grad()
-    src_input = src_input.unsqueeze(1).float().cuda()
+    src_input = src_input.float().cuda()
     src_target = src_target.long().cuda()
-    tar_input = tar_input.unsqueeze(1).float().cuda()
+    tar_input = tar_input.float().cuda()
     tar_target = tar_target.long().cuda()
-    s_domain_label = torch.zeros(batch_size).long().cuda()
-    t_domain_label = torch.ones(batch_size).long().cuda()
 
     # penalty parameter
     #lam = 2 / (1 + math.exp(-1 * 10 * cur_epoch / epochs)) - 1 
-    adjust_learning_rate(optimizer, lr, cur_epoch, epochs) # adjust learning rate
-
-    model.train()
+    loss_dict = {}
     p = float(cur_epoch) / 20
     alpha = 2. / (1. + np.exp(-10 * p)) - 1
-    s_out_train, s_domain_out = model(src_input, alpha)
-    _, t_domain_out = model(tar_input, alpha)
-    loss_domain_s = criterion(s_domain_out, s_domain_label)
-    loss_domain_t = criterion(t_domain_out, t_domain_label)
 
-    loss_c = criterion(s_out_train, src_target)
-    # loss = loss_c + (loss_domain_s + loss_domain_t)*0.5
-    loss = loss_c 
-    loss.backward()
-    optimizer.step()
+    adjust_learning_rate(optimizer_dict["encoder"], args.lr, cur_epoch, args.epochs) # adjust learning rate
+    model.train()
+    optimizer_dict["encoder"].zero_grad()
 
-    log_metrics["loss_c"] = loss_c.item()
-    log_metrics["loss_domain_s"] = loss_domain_s.item()
-    log_metrics["loss_domain_t"] = loss_domain_t.item()
-    log_metrics["loss"] = loss.item()
+    src_class_prob, src_domain_prob, _ = model(src_input)
+    tar_class_prob, tar_domain_prob, _ = model(tar_input)
+
+    loss_dict["src_loss_domain"] = adversarialLoss(args=args, epoch=cur_epoch, prob_p_dis=src_domain_prob, 
+                                                    index=src_idx, weights_ord=val_dict["src_weights_ord"], 
+                                                    src=True, is_encoder=True)
+
+    loss_dict["tar_loss_domain"] = adversarialLoss(args=args, epoch=cur_epoch, prob_p_dis=tar_domain_prob, 
+                                                    index=tar_idx, weights_ord=val_dict["tar_weights_ord"], 
+                                                    src=False, is_encoder=True)
+
+    loss_dict["src_loss_class"] = srcClassifyLoss(src_class_prob, src_target, 
+                                                  index=src_idx, weights_ord=val_dict["src_weights_ord"])
+
+    loss_dict["tar_loss_class"] = tarClassifyLoss(args=args, epoch=cur_epoch, tar_cls_p=tar_class_prob, 
+                                                  target_ps_ord=val_dict["tar_label_ps_ord"], 
+                                                  index=tar_idx, weights_ord=val_dict["tar_weights_ord"],
+                                                  th=val_dict["th"])
+
+    loss_dict["encoder_loss"]= alpha * (loss_dict["src_loss_domain"] + loss_dict["tar_loss_domain"]) + \
+                                        loss_dict["src_loss_class"] + loss_dict["tar_loss_class"]
+    
+    loss_dict["encoder_loss"].backward()
+    optimizer_dict["encoder"].step()
+    logger.log(loss_dict)
+
+    optimizer_dict["classifier"].zero_grad()
+    src_class_prob, src_domain_prob, _ = model(src_input)
+    tar_class_prob, tar_domain_prob, _ = model(tar_input)
+    loss_dict["src_loss_domain"] = adversarialLoss(args=args, epoch=cur_epoch, prob_p_dis=src_domain_prob, 
+                                                    index=src_idx, weights_ord=val_dict["src_weights_ord"], 
+                                                    src=True, is_encoder=False)
+
+    loss_dict["tar_loss_domain"] = adversarialLoss(args=args, epoch=cur_epoch, prob_p_dis=tar_domain_prob, 
+                                                    index=tar_idx, weights_ord=val_dict["tar_weights_ord"], 
+                                                    src=False, is_encoder=True)
+
+    loss_dict["src_loss_class"] = srcClassifyLoss(src_class_prob, src_target, 
+                                                  index=src_idx, weights_ord=val_dict["src_weights_ord"])
+
+    loss_dict["tar_loss_class"] = tarClassifyLoss(args=args, epoch=cur_epoch, tar_cls_p=tar_class_prob, 
+                                                  target_ps_ord=val_dict["tar_label_ps_ord"], 
+                                                  index=tar_idx, weights_ord=val_dict["tar_weights_ord"],
+                                                  th=val_dict["th"])
+
+    loss_dict["classifier_loss"]= alpha * (loss_dict["src_loss_domain"] + loss_dict["tar_loss_domain"]) + \
+                                    loss_dict["src_loss_class"] + loss_dict["tar_loss_class"]
+
+    loss_dict["classifier_loss"].backward()
+    optimizer_dict["classifier"].step()
+    loss_dict["epoch"] = cur_epoch
+    logger.log(loss_dict)

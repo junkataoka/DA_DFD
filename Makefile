@@ -1,4 +1,3 @@
-.PHONY: clean data lint sync_data_to_s3 sync_data_from_s3 
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -10,7 +9,13 @@ PROFILE = default
 PROJECT_NAME = da_bfd
 ENVNAME = mlenv
 PYTHON_INTERPRETER = python3
-SHELL := /usr/bin/zsh
+SHELL := /usr/bin/bash
+VENV           = $(HOME)/$(ENVNAME)
+VENV_PYTHON    = $(VENV_PYTHON)/bin/python
+SYSTEM_PYTHON  = $(or $(shell which python3), $(shell which python))
+# If virtualenv exists, use it. If not, find python using PATH
+PYTHON         = $(or $(wildcard $(VENV_PYTHON)), $(SYSTEM_PYTHON)
+PYTHONPATH=$(PROJECT_DIR)
 
 
 #################################################################################
@@ -19,7 +24,7 @@ SHELL := /usr/bin/zsh
 
 ## Install Python Dependencies
 activate_env:
-	source $(HOME)/$(ENVNAME)/bin/activate
+	$(HOME)/$(ENVNAME)/bin/activate
 	pip3 freeze > requirements.txt  # Python3
 
 
@@ -38,23 +43,54 @@ clean:
 lint:
 	flake8 src
 
+.PHONY: loadmodule
+loadmodule: 
+	module load cuda11.1/toolkit/11.1.1; \
+
+.PHONY: test
+test: loadmodule
+	pytest -s tests -rv  --durations 5
+
+
+
+
+
+##$(PYTHON) -m pytest -s tests/ -rv  --durations 5
+
 #################################################################################
 # PROJECT RULES                                                                 #
 #################################################################################
 ## Pretrain
-train:
-	sbatch slurm_run.sh 0 1 /data/home/jkataok1/DA_DFD/log/CWRU0toCWRU1_lr0.005_e600_b128/src_model.pth
-	sbatch slurm_run.sh 1 0 /data/home/jkataok1/DA_DFD/log/CWRU1toCWRU0_lr0.005_e600_b128/src_model.pth 
-	sbatch slurm_run.sh 0 2 /data/home/jkataok1/DA_DFD/log/CWRU0toCWRU2_lr0.005_e600_b128/src_model.pth
-	sbatch slurm_run.sh 2 0 /data/home/jkataok1/DA_DFD/log/CWRU2toCWRU0_lr0.005_e600_b128/src_model.pth
-	sbatch slurm_run.sh 0 3 /data/home/jkataok1/DA_DFD/log/CWRU0toCWRU3_lr0.005_e600_b128/src_model.pth
-	sbatch slurm_run.sh 3 0 /data/home/jkataok1/DA_DFD/log/CWRU3toCWRU0_lr0.005_e600_b128/src_model.pth
-	sbatch slurm_run.sh 1 3 /data/home/jkataok1/DA_DFD/log/CWRU1toCWRU3_lr0.005_e600_b128/src_model.pth
-	sbatch slurm_run.sh 3 1 /data/home/jkataok1/DA_DFD/log/CWRU3toCWRU1_lr0.005_e600_b128/src_model.pth
-	sbatch slurm_run.sh 2 3 /data/home/jkataok1/DA_DFD/log/CWRU2toCWRU3_lr0.005_e600_b128/src_model.pth
-	sbatch slurm_run.sh 3 2 /data/home/jkataok1/DA_DFD/log/CWRU3toCWRU2_lr0.005_e600_b128/src_model.pth
-	sbatch slurm_run.sh 1 2 /data/home/jkataok1/DA_DFD/log/CWRU1toCWRU2_lr0.005_e600_b128/src_model.pth
-	sbatch slurm_run.sh 2 1 /data/home/jkataok1/DA_DFD/log/CWRU2toCWRU1_lr0.005_e600_b128/src_model.pth
+.PHONY: pretrain
+pretrain: loadmodule
+	export PYTHONPATH=$(PROJECT_DIR); \
+	sbatch pretrain_slurm.sh 0 1; \
+	sbatch pretrain_slurm.sh 1 0; \
+	sbatch pretrain_slurm.sh 0 2; \
+	sbatch pretrain_slurm.sh 2 0; \
+	sbatch pretrain_slurm.sh 0 3; \
+	sbatch pretrain_slurm.sh 3 0; \
+	sbatch pretrain_slurm.sh 1 3; \
+	sbatch pretrain_slurm.sh 3 1; \
+	sbatch pretrain_slurm.sh 2 3; \
+	sbatch pretrain_slurm.sh 3 2; \
+	sbatch pretrain_slurm.sh 1 2; \
+	sbatch pretrain_slurm.sh 2 1; \
+
+.PHONY: train
+train: loadmodule
+	sbatch train_slurm.sh 0 1; \
+	# sbatch train_slurm.sh 1 0; \
+	# sbatch train_slurm.sh 0 2; \
+	# sbatch train_slurm.sh 2 0; \
+	# sbatch train_slurm.sh 0 3; \
+	# sbatch train_slurm.sh 3 0; \
+	# sbatch train_slurm.sh 1 3; \
+	# sbatch train_slurm.sh 3 1; \
+	# sbatch train_slurm.sh 2 3; \
+	# sbatch train_slurm.sh 3 2; \
+	# sbatch train_slurm.sh 1 2; \
+	# sbatch train_slurm.sh 2 1; \
 	
 
 #################################################################################

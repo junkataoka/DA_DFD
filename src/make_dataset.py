@@ -20,10 +20,11 @@ def create_dataset(datapath_list, segment_length=2048, normalize=True):
     df_all = get_df_all(df, segment_length, normalize)
     return df_all
 
-def save_cwrs(df, savepath, condition):
+def save_cwrs(df, savepath, condition, segment_length):
     data = df[df["condition"]==condition]
-    y = data["label"].to_numpy()
+    y = data["label"].to_numpy().reshape(-1, 1)
     x = data.loc[:, ~data.columns.isin(["filename", "label", "condition"])].to_numpy()
+    x = x.reshape(-1, 1, segment_length)
     np.savez(savepath, x=x, y=y)
 
 def prepare_cwrs(datapath_list, segment_length, normalize, test_ratio=0.25):
@@ -32,10 +33,10 @@ def prepare_cwrs(datapath_list, segment_length, normalize, test_ratio=0.25):
     temp = data_path.tolist()
     condition = [int(temp[i].split('/')[-1].split('_')[-1].split(".")[0]) for i in range(len(temp))]
     df["condition"] = condition
-    save_cwrs(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/0.npz", condition=0)
-    save_cwrs(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/1.npz", condition=1)
-    save_cwrs(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/2.npz", condition=2)
-    save_cwrs(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/3.npz", condition=3)
+    save_cwrs(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/0.npz", condition=0, segment_length=segment_length)
+    save_cwrs(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/1.npz", condition=1, segment_length=segment_length)
+    save_cwrs(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/2.npz", condition=2,  segment_length=segment_length)
+    save_cwrs(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/3.npz", condition=3,  segment_length=segment_length)
 
     
 def main():
