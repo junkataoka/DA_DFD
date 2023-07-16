@@ -19,14 +19,14 @@ def kernel_k_means_wrapper(target_features, target_targets,
                    pseudo_labels, epoch, args, best_prec):
 
     # define kernel k-means clustering
-    kkm = KernelKMeans(n_clusters=args.num_classes, max_iter=5
-                       , random_state=0, kernel="rbf", 
+    kkm = KernelKMeans(n_clusters=args.num_classes, max_iter=10, 
+                       random_state=0, kernel="rbf", 
                        gamma=None, verbose=1)
     kkm.fit(np.array(target_features.cpu()), 
             initial_label=np.array(pseudo_labels.cpu()), 
             true_label=np.array(target_targets.cpu()), args=args, epoch=epoch)
 
-    idx_sim = torch.from_numpy(kkm.labels_)
+    idx_sim = torch.from_numpy(kkm.labels_).cuda()
     c_tar = torch.cuda.FloatTensor(args.num_classes, target_features.size(1)).fill_(0)
     count = torch.cuda.FloatTensor(args.num_classes, 1).fill_(0)
     for i in range(target_targets.size(0)):
@@ -39,13 +39,11 @@ def kernel_k_means_wrapper(target_features, target_targets,
     if is_best:
         best_prec = prec1
 
-    del target_features
-    del target_targets
-    del pseudo_labels
     gc.collect()
     torch.cuda.empty_cache()
 
-    return c_tar, best_prec
+    # return cluster center and best precision and prediction from k-means
+    return c_tar, idx_sim, best_prec
 
 class KernelKMeans(BaseEstimator, ClusterMixin):
     """

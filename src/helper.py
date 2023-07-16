@@ -126,22 +126,30 @@ def normalize_signal(df):
     mean = df['DE_time'].apply(np.mean)
     std = df['DE_time'].apply(np.std)
     df['DE_time'] = (df['DE_time'] - mean) / std
+    return mean, std
 
 def normalize_one_signal(df):
     mean = np.mean(df)
     std = np.std(df)
+    df = (df - mean) / std
+    return df, mean, std
+
+def scale_signal(df, mean, std):
     df = (df - mean) / std
     return df
 
 def get_df_all(df, segment_length=512, normalize=False):
 
     if normalize:
-        normalize_signal(df)
+        mean, std = normalize_signal(df)
+    else:
+        mean, std = 0.0, 1.0
+
     df_processed = divide_signal(df, segment_length)
 
     map_label = {'N':0, 'B':1, 'IR':2, 'OR':3}
     df_processed['label'] = df_processed['label'].map(map_label)
-    return df_processed
+    return df_processed, mean, std
 
 def count_batch_on_large_dataset(train_loader_target, train_loader_source):
     batch_number_t = len(train_loader_target)

@@ -4,7 +4,7 @@ import torch
 def adversarialLoss(args, epoch, prob_p_dis, index, weights_ord, src=True, is_encoder=True):
 
     if not args.pretrained:
-        return 0
+        return torch.tensor([0]).float().cuda()
 
     weights = weights_ord[index]
 
@@ -30,10 +30,8 @@ def adversarialLoss(args, epoch, prob_p_dis, index, weights_ord, src=True, is_en
 def tarClassifyLoss(args, epoch, tar_cls_p, target_ps_ord, index, weights_ord, th):
 
     if not args.pretrained:
-        return 0
+        return torch.tensor([0]).float().cuda()
 
-    pos_loss = 0
-    neg_loss = 0
     prob_q2 = tar_cls_p / tar_cls_p.sum(0, keepdim=True).pow(0.5)
     prob_q2 /= prob_q2.sum(1, keepdim=True)
     prob_q = prob_q2
@@ -45,8 +43,8 @@ def tarClassifyLoss(args, epoch, tar_cls_p, target_ps_ord, index, weights_ord, t
 
     if epoch < args.warmup_epoch:
         tar_weights.fill_(1)
-        pos_loss = 0
-        neg_loss = 0
+        pos_loss = torch.tensor([0]).float().cuda()
+        neg_loss = torch.tensor([0]).float().cuda()
 
     else:
         if len(torch.unique(pos_mask)) == 2:
@@ -55,7 +53,7 @@ def tarClassifyLoss(args, epoch, tar_cls_p, target_ps_ord, index, weights_ord, t
 
         else:
             pos_loss = - (tar_weights[pos_mask==1] * (prob_q[pos_mask==1] * tar_cls_p[pos_mask==1].log()).sum(1)).mean()
-            neg_loss = 0
+            neg_loss = torch.tensor([0]).float().cuda()
 
     return pos_loss + neg_loss
 

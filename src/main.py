@@ -27,7 +27,8 @@ parser.add_argument('--src_domain', type=str, default="0", help='source domain')
 parser.add_argument('--tar_domain', type=str, default="1", help='target domain')
 parser.add_argument('--log', type=str, default="log", help='log')
 parser.add_argument('--pretrained', action='store_true')
-parser.add_argument('--warmup_epoch', type=int, default=5, help='warm up epoch size')
+parser.add_argument('--source_model_path', type=str, default="src_models", help='source model path')
+parser.add_argument('--warmup_epoch', type=int, default=20, help='warm up epoch size')
 
 args = parser.parse_args()
 
@@ -76,10 +77,10 @@ def main(args):
     model.apply(batch_norm_init)
 
     if args.pretrained:
-        print("load pretrained model from {}".format(args.log))
+        print("load pretrained model from {}".format(args.source_model_path))
         src_model_name = "src_wavatar.pth"
         model_name = "adapted_wavatar.pth"
-        model.load_state_dict(torch.load(os.path.join(log, src_model_name)))
+        model.load_state_dict(torch.load(os.path.join(args.source_model_path, "_".join([args.src_data, args.src_domain, args.tar_data, args.tar_domain, src_model_name]))))
     else:
         print("Pretraining model from scratch")
         model_name = "src_wavatar.pth"
@@ -118,7 +119,7 @@ def main(args):
 
             # Comptue target cluster center
             
-            val_dict["tar_center"], val_dict["tar_acc_cluster"] = kernel_k_means_wrapper(val_dict["tar_feature"], 
+            val_dict["tar_center"], val_dict["tar_label_kmeans"], val_dict["tar_acc_cluster"] = kernel_k_means_wrapper(val_dict["tar_feature"], 
                                                                    val_dict["tar_label_ps"], 
                                                                    val_dict["tar_label"], 
                                                                    epoch, args, best_prec=1e-4)
@@ -138,14 +139,20 @@ def main(args):
             val_dict["th"] = compute_threthold(val_dict["tar_weights_ord"], 
                                                val_dict["tar_label_ps_ord"], 
                                                args.num_classes)
+
             wandb.log({"src_acc": val_dict["src_acc"], 
                        "tar_acc": val_dict["tar_acc"], 
+                       "cluster_acc": val_dict["tar_acc_cluster"],
                        "epoch": epoch})
 
             if val_dict["tar_acc"] > best_acc:
                 best_acc = val_dict["tar_acc"]
-                torch.save(model.state_dict(), os.path.join(log, model_name))
                 wandb.log({"best_acc": best_acc, "epoch": epoch})
+
+                if args.pretrained:
+                    torch.save(model.state_dict(), os.path.join(log, model_name))
+                else:
+                    torch.save(model.state_dict(), os.path.join(args.source_model_path, "_".join([args.src_data,args.src_domain, args.tar_data, args.tar_domain, model_name])))
 
             if itern != 0:
                 count_itern_each_epoch = 0

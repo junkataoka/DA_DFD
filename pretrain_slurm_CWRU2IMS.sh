@@ -13,8 +13,8 @@ SRC="$1" # source domain
 TAR="$2" # target domain
 
  module load cuda11.1/toolkit/11.1.1
-srun python src/main.py --src_domain=$SRC --tar_domain=$TAR --lr=0.005 \
-                        --batch_size=128 --epochs=600
+srun python src/main.py --src_data="CWRU" --tar_data="IMS" --src_domain=$SRC --tar_domain=$TAR --lr=0.005 \
+                        --batch_size=128 --epochs=200
 
 #srun python src/main.py --src_domain=$SRC --tar_domain=$TAR --lr=0.005 --batch_size=128 --epochs=600 --pretrained \
 #        --pretrained_path=$MODELPATH

@@ -1,9 +1,316 @@
 wandb: Currently logged in as: kataoka0511 (junkataoka). Use `wandb login --relogin` to force relogin
-wandb: wandb version 0.15.4 is available!  To upgrade, please run:
+wandb: wandb version 0.15.5 is available!  To upgrade, please run:
 wandb:  $ pip install wandb --upgrade
 wandb: Tracking run with wandb version 0.15.3
-wandb: Run data is saved locally in /data/home/jkataok1/DA_DFD/wandb/run-20230702_012409-o9t43k2y
+wandb: Run data is saved locally in /data/home/jkataok1/DA_DFD/wandb/run-20230715_215016-znmytzkq
 wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run log/CWRU2toCWRU3_lr0.005_e600_b128
+wandb: Syncing run log/IMS0toCWRUall_lr0.005_e200_b128
 wandb: ⭐️ View project at https://wandb.ai/junkataoka/DA_DFD
-wandb: 🚀 View run at https://wandb.ai/junkataoka/DA_DFD/runs/o9t43k2y
+wandb: 🚀 View run at https://wandb.ai/junkataoka/DA_DFD/runs/znmytzkq
+wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
+wandb: 
+wandb: Run history:
+wandb:        best_acc ▁█
+wandb: classifier_loss █▁▃▃▂▂▁▁▄▆▇▇▆▅▆▅▆▆▅▆▆▄▆▄▆▅▆▃▅▄▆▆▆▆▅▆▅▅▅▅
+wandb:     cluster_acc ▂▅▅▂▃▂▂▂▃▁▂▄▅▃▁▅▄▃▅▆█▇▆▄▆▅▅▅▃▄▄▄▆▆▅▄▅▅▄▃
+wandb:    encoder_loss ▁▃▄▄▅▅▅▅▇████▇█▇██▇██▇█▇███▇█▇████▇█████
+wandb:           epoch ▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
+wandb:         src_acc ███████████████████▆███▇███▇█▇▇▁▇▂▂▇▇███
+wandb:  src_loss_class ▁▃▇█▆▅▄▄▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+wandb: src_loss_domain █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:         tar_acc █▅▅▆▆▆▇▇▇▃▄▆▆▆▅▄▃▁▅▇█▇▅▃▆▄▄▆▃▃▃▃▅▆▃▃▅▅▄▂
+wandb:  tar_loss_class ▁▁▁▁▁▁▁▁▅▇██▇▆▇▆▇▇▆▇▇▆▇▅▇▇▇▄▇▆▇▇▇▇▆█▆▇▇▇
+wandb: tar_loss_domain █▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:        best_acc 0.29343
+wandb: classifier_loss nan
+wandb:     cluster_acc 19.53826
+wandb:    encoder_loss nan
+wandb:           epoch 99
+wandb:  src_loss_class nan
+wandb: src_loss_domain nan
+wandb:  tar_loss_class nan
+wandb: tar_loss_domain nan
+wandb: 
+wandb: 🚀 View run log/IMS0toCWRUall_lr0.005_e200_b128 at: https://wandb.ai/junkataoka/DA_DFD/runs/znmytzkq
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20230715_215016-znmytzkq/logs
+Traceback (most recent call last):
+  File "src/main.py", line 168, in <module>
+    main(args)
+  File "src/main.py", line 125, in main
+    epoch, args, best_prec=1e-4)
+  File "/data/home/jkataok1/DA_DFD/src/kernel_kmeans.py", line 27, in kernel_k_means_wrapper
+    true_label=np.array(target_targets.cpu()), args=args, epoch=epoch)
+  File "/data/home/jkataok1/DA_DFD/src/kernel_kmeans.py", line 90, in fit
+    K = self._get_kernel(X)
+  File "/data/home/jkataok1/DA_DFD/src/kernel_kmeans.py", line 85, in _get_kernel
+    filter_params=True, **params)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/metrics/pairwise.py", line 2053, in pairwise_kernels
+    return _parallel_pairwise(X, Y, func, n_jobs, **kwds)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/metrics/pairwise.py", line 1430, in _parallel_pairwise
+    return func(X, Y, **kwds)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/metrics/pairwise.py", line 1171, in rbf_kernel
+    X, Y = check_pairwise_arrays(X, Y)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/metrics/pairwise.py", line 153, in check_pairwise_arrays
+    estimator=estimator,
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/utils/validation.py", line 800, in check_array
+    _assert_all_finite(array, allow_nan=force_all_finite == "allow-nan")
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/utils/validation.py", line 116, in _assert_all_finite
+    type_err, msg_dtype if msg_dtype is not None else X.dtype
+ValueError: Input contains NaN, infinity or a value too large for dtype('float32').
+srun: error: compute130: task 0: Exited with exit code 1
+wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
+wandb: 
+wandb: Run history:
+wandb:        best_acc ▁▆█████████
+wandb: classifier_loss ▇▃▄▃▂▂▁█▇▇▇▇▆▆▆▆▇▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆
+wandb:     cluster_acc ▄▃▇▇███▅▅▃▂▂▂▂▂▁▂▂▂▂▁▁▂▂▁▂▁▁▂▂▁▁▁▂▁▁▁▂▂▂
+wandb:    encoder_loss ▁▂▃▄▄▅▅█████▇█▇█████████████████████████
+wandb:           epoch ▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
+wandb:         src_acc ▆█▂▂▂▂▂▂▁▂▂▂▃▂▂▃▂▂▂▃▃▃▂▂▂▂▂▃▂▃▃▂▃▂▂▃▃▃▃▂
+wandb:  src_loss_class █▄▇▆▅▄▃▂▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: src_loss_domain █▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:         tar_acc ▅▃▇████▅▄▂▂▂▂▂▃▁▂▂▃▂▁▂▂▂▁▂▂▁▂▂▁▁▂▂▂▁▁▂▂▃
+wandb:  tar_loss_class ▁▁▁▁▁▁▁█▇█▇█▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▆
+wandb: tar_loss_domain █▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:        best_acc 0.49537
+wandb: classifier_loss nan
+wandb:     cluster_acc 14.22333
+wandb:    encoder_loss nan
+wandb:           epoch 117
+wandb:  src_loss_class nan
+wandb: src_loss_domain nan
+wandb:  tar_loss_class nan
+wandb: tar_loss_domain nan
+wandb: 
+wandb: 🚀 View run log/CWRU3toIMS0_lr0.005_e200_b128 at: https://wandb.ai/junkataoka/DA_DFD/runs/qs291tum
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20230715_205658-qs291tum/logs
+Traceback (most recent call last):
+  File "src/main.py", line 168, in <module>
+    main(args)
+  File "src/main.py", line 125, in main
+    epoch, args, best_prec=1e-4)
+  File "/data/home/jkataok1/DA_DFD/src/kernel_kmeans.py", line 27, in kernel_k_means_wrapper
+    true_label=np.array(target_targets.cpu()), args=args, epoch=epoch)
+  File "/data/home/jkataok1/DA_DFD/src/kernel_kmeans.py", line 90, in fit
+    K = self._get_kernel(X)
+  File "/data/home/jkataok1/DA_DFD/src/kernel_kmeans.py", line 85, in _get_kernel
+    filter_params=True, **params)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/metrics/pairwise.py", line 2053, in pairwise_kernels
+    return _parallel_pairwise(X, Y, func, n_jobs, **kwds)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/metrics/pairwise.py", line 1430, in _parallel_pairwise
+    return func(X, Y, **kwds)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/metrics/pairwise.py", line 1171, in rbf_kernel
+    X, Y = check_pairwise_arrays(X, Y)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/metrics/pairwise.py", line 153, in check_pairwise_arrays
+    estimator=estimator,
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/utils/validation.py", line 800, in check_array
+    _assert_all_finite(array, allow_nan=force_all_finite == "allow-nan")
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/utils/validation.py", line 116, in _assert_all_finite
+    type_err, msg_dtype if msg_dtype is not None else X.dtype
+ValueError: Input contains NaN, infinity or a value too large for dtype('float32').
+srun: error: compute131: task 0: Exited with exit code 1
+wandb: Waiting for W&B process to finish... (success).
+wandb: - 0.004 MB of 0.004 MB uploaded (0.000 MB deduped)wandb: \ 0.004 MB of 0.158 MB uploaded (0.000 MB deduped)wandb: | 0.158 MB of 0.158 MB uploaded (0.000 MB deduped)wandb: 
+wandb: Run history:
+wandb:        best_acc ▁▆█
+wandb: classifier_loss █▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:     cluster_acc █▂▁▁▁▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▃▃▂▃▂▃▃▃▃▃▃▃▃▃
+wandb:    encoder_loss █▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:           epoch ▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
+wandb:         src_acc ▂█▅▅▄▄▄▄▄▅▅▅▅▅▄▄▄▃▃▅▄▄▁▂▃▄▃▅▄▄▃▃▃▁▂▃▃▄▂▁
+wandb:  src_loss_class █▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: src_loss_domain ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:         tar_acc █▅▁▂▂▃▃▂▃▂▃▃▄▃▄▄▄▄▄▄▄▄▅▄▄▄▅▅▄▅▅▅▅▅▅▆▅▅▆▅
+wandb:  tar_loss_class ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: tar_loss_domain ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:        best_acc 0.41643
+wandb: classifier_loss 0.00909
+wandb:     cluster_acc 26.73333
+wandb:    encoder_loss 0.00929
+wandb:           epoch 199
+wandb:  src_loss_class 0.00909
+wandb: src_loss_domain 0.0
+wandb:  tar_loss_class 0.0
+wandb: tar_loss_domain 0.0
+wandb: 
+wandb: 🚀 View run log/CWRUalltoIMS0_lr0.005_e200_b128 at: https://wandb.ai/junkataoka/DA_DFD/runs/wm3ivm82
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20230715_183246-wm3ivm82/logs
+wandb: Waiting for W&B process to finish... (success).
+wandb: - 0.004 MB of 0.004 MB uploaded (0.000 MB deduped)wandb: \ 0.004 MB of 0.158 MB uploaded (0.000 MB deduped)wandb: | 0.158 MB of 0.158 MB uploaded (0.000 MB deduped)wandb: 
+wandb: Run history:
+wandb:        best_acc ▁▅▆▇▇▇████
+wandb: classifier_loss █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:     cluster_acc █▁▁▃▂▄▄▅▅▆▇▆▅▆▆▆▇▇▇▇▇▇▇▇▇▇▆▆▆▆▆▆▆▆▆▆▆▆▆▆
+wandb:    encoder_loss █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:           epoch ▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
+wandb:         src_acc ▁█▇▆▆▆▆▄▆▅▅▅▅▃▅▇▆▅▆▄▄▄▅▄▄▅▅▆▆▅▅▄▅▅▅▅▆▄▆▇
+wandb:  src_loss_class █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: src_loss_domain ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:         tar_acc ▇▁▂▄▃▄▄▅▅▆▆▆▅▅▆▆▇▆▇▇▇▇▇▇█▇▇▇▇█▇████████▇
+wandb:  tar_loss_class ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: tar_loss_domain ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:        best_acc 0.238
+wandb: classifier_loss 0.01145
+wandb:     cluster_acc 17.84
+wandb:    encoder_loss 0.01232
+wandb:           epoch 199
+wandb:  src_loss_class 0.01145
+wandb: src_loss_domain 0.0
+wandb:  tar_loss_class 0.0
+wandb: tar_loss_domain 0.0
+wandb: 
+wandb: 🚀 View run log/CWRU0toIMS0_lr0.005_e200_b128 at: https://wandb.ai/junkataoka/DA_DFD/runs/7kl9ks3z
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20230715_182909-7kl9ks3z/logs
+wandb: Waiting for W&B process to finish... (success).
+wandb: - 0.156 MB of 0.156 MB uploaded (0.000 MB deduped)wandb: 
+wandb: Run history:
+wandb:        best_acc ▁█
+wandb: classifier_loss █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:     cluster_acc █▁▁▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:    encoder_loss █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:           epoch ▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
+wandb:         src_acc █▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:  src_loss_class █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: src_loss_domain ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:         tar_acc █▁▁▁▂▂▂▂▁▂▂▂▂▁▂▁▂▂▁▁▂▂▂▂▂▂▂▁▂▁▂▁▂▂▂▂▂▁▁▂
+wandb:  tar_loss_class ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: tar_loss_domain ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:        best_acc 0.3147
+wandb: classifier_loss 0.00861
+wandb:     cluster_acc 0.87667
+wandb:    encoder_loss 0.00884
+wandb:           epoch 199
+wandb:  src_loss_class 0.00861
+wandb: src_loss_domain 0.0
+wandb:  tar_loss_class 0.0
+wandb: tar_loss_domain 0.0
+wandb: 
+wandb: 🚀 View run log/CWRU3toIMS0_lr0.005_e200_b128 at: https://wandb.ai/junkataoka/DA_DFD/runs/qmxqsd43
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20230715_182918-qmxqsd43/logs
+wandb: Waiting for W&B process to finish... (success).
+wandb: - 0.004 MB of 0.004 MB uploaded (0.000 MB deduped)wandb: \ 0.156 MB of 0.156 MB uploaded (0.000 MB deduped)wandb: 
+wandb: Run history:
+wandb:        best_acc ▁
+wandb: classifier_loss █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:     cluster_acc █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁
+wandb:    encoder_loss █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:           epoch ▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇████
+wandb:         src_acc █▇▄▁▅▄▆▄▄▆▆▆▆▆▆▆▆▆▇▇▆▆▇▇▇▆▇▇▇▇▂▅▇▇▃▇▂█▅▅
+wandb:  src_loss_class █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: src_loss_domain ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:         tar_acc █▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:  tar_loss_class ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: tar_loss_domain ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:        best_acc 0.24473
+wandb: classifier_loss 0.00662
+wandb:     cluster_acc 0.38667
+wandb:    encoder_loss 0.00665
+wandb:           epoch 199
+wandb:  src_loss_class 0.00662
+wandb: src_loss_domain 0.0
+wandb:  tar_loss_class 0.0
+wandb: tar_loss_domain 0.0
+wandb: 
+wandb: 🚀 View run log/CWRU2toIMS0_lr0.005_e200_b128 at: https://wandb.ai/junkataoka/DA_DFD/runs/qdvm6kxb
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20230715_182918-qdvm6kxb/logs
+wandb: Waiting for W&B process to finish... (success).
+wandb: - 0.004 MB of 0.156 MB uploaded (0.000 MB deduped)wandb: 
+wandb: Run history:
+wandb:        best_acc ▁█
+wandb: classifier_loss █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:     cluster_acc █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:    encoder_loss █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:           epoch ▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
+wandb:         src_acc ▁▃▇▆▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇█▇█▇▆▇█▇██▅██▇▇▇█▇
+wandb:  src_loss_class █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: src_loss_domain ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:         tar_acc █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:  tar_loss_class ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: tar_loss_domain ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:        best_acc 0.2996
+wandb: classifier_loss 0.00867
+wandb:     cluster_acc 0.01667
+wandb:    encoder_loss 0.00872
+wandb:           epoch 199
+wandb:  src_loss_class 0.00867
+wandb: src_loss_domain 0.0
+wandb:  tar_loss_class 0.0
+wandb: tar_loss_domain 0.0
+wandb: 
+wandb: 🚀 View run log/CWRU1toIMS0_lr0.005_e200_b128 at: https://wandb.ai/junkataoka/DA_DFD/runs/vz1ga3qr
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20230715_182910-vz1ga3qr/logs
+wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
+wandb: 
+wandb: Run history:
+wandb:        best_acc ▁
+wandb: classifier_loss ▄▅▃▂▁▆▆▆▆█▃▄█▄▃▃▃▂▂▃▂▂▂▄▃▂▂▂▂▂▂▂▂▂▂▂▂▇▃▂
+wandb:     cluster_acc ▆▁▁▁▁▆▅▇▇█▇██▇▇█▇▇▇▇▇▇▇▇▆▇█████▇████▇█▇▇
+wandb:    encoder_loss ▁▃▄▄▅▆▇▇▇█▆▆▇▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆█▆▆
+wandb:           epoch ▁▁▁▂▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▆▇▇▇▇▇███
+wandb:         src_acc ▃█▇▆▅▇▅▄▅▅▅▂▄▅▄▅▄▄▄▃▃▃▃▄▅▄▄▅▃▃▃▃▂▁▃▂▅▅▂▃
+wandb:  src_loss_class ▇█▇▄▄▂▂▂▂▂▁▂▂▁▁▁▂▁▁▂▂▁▁▂▁▂▁▂▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: src_loss_domain █▄▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:         tar_acc █▄▁▁▂▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅
+wandb:  tar_loss_class ▁▁▁▁▁▆▆▆▆▇▄▅█▅▄▄▄▃▃▄▃▃▃▄▄▃▃▃▃▃▃▃▃▃▃▃▃▇▄▄
+wandb: tar_loss_domain █▆▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:        best_acc 0.41643
+wandb: classifier_loss nan
+wandb:     cluster_acc 41.92
+wandb:    encoder_loss nan
+wandb:           epoch 174
+wandb:  src_loss_class nan
+wandb: src_loss_domain nan
+wandb:  tar_loss_class nan
+wandb: tar_loss_domain nan
+wandb: 
+wandb: 🚀 View run log/CWRUalltoIMS0_lr0.005_e200_b128 at: https://wandb.ai/junkataoka/DA_DFD/runs/3bslhs4s
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20230715_211208-3bslhs4s/logs
+Traceback (most recent call last):
+  File "src/main.py", line 168, in <module>
+    main(args)
+  File "src/main.py", line 125, in main
+    epoch, args, best_prec=1e-4)
+  File "/data/home/jkataok1/DA_DFD/src/kernel_kmeans.py", line 27, in kernel_k_means_wrapper
+    true_label=np.array(target_targets.cpu()), args=args, epoch=epoch)
+  File "/data/home/jkataok1/DA_DFD/src/kernel_kmeans.py", line 90, in fit
+    K = self._get_kernel(X)
+  File "/data/home/jkataok1/DA_DFD/src/kernel_kmeans.py", line 85, in _get_kernel
+    filter_params=True, **params)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/metrics/pairwise.py", line 2053, in pairwise_kernels
+    return _parallel_pairwise(X, Y, func, n_jobs, **kwds)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/metrics/pairwise.py", line 1430, in _parallel_pairwise
+    return func(X, Y, **kwds)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/metrics/pairwise.py", line 1171, in rbf_kernel
+    X, Y = check_pairwise_arrays(X, Y)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/metrics/pairwise.py", line 153, in check_pairwise_arrays
+    estimator=estimator,
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/utils/validation.py", line 800, in check_array
+    _assert_all_finite(array, allow_nan=force_all_finite == "allow-nan")
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/sklearn/utils/validation.py", line 116, in _assert_all_finite
+    type_err, msg_dtype if msg_dtype is not None else X.dtype
+ValueError: Input contains NaN, infinity or a value too large for dtype('float32').
+srun: error: compute130: task 0: Exited with exit code 1
