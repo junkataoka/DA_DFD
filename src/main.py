@@ -28,7 +28,7 @@ parser.add_argument('--tar_domain', type=str, default="1", help='target domain')
 parser.add_argument('--log', type=str, default="log", help='log')
 parser.add_argument('--pretrained', action='store_true')
 parser.add_argument('--source_model_path', type=str, default="src_models", help='source model path')
-parser.add_argument('--warmup_epoch', type=int, default=20, help='warm up epoch size')
+parser.add_argument('--warmup_epoch', type=int, default=1, help='warm up epoch size')
 
 args = parser.parse_args()
 
@@ -124,22 +124,20 @@ def main(args):
                                                                    val_dict["tar_label"], 
                                                                    epoch, args, best_prec=1e-4)
 
-            val_dict["tar_weights_ord"] = compute_weights(val_dict["tar_feature"], 
+            val_dict["tar_weights"] = compute_weights(val_dict["tar_feature"], 
                                           val_dict["tar_label_ps"], 
-                                          val_dict["tar_index"],
                                           val_dict["tar_center"])
 
-            val_dict["src_weights_ord"]= compute_weights(val_dict["src_feature"], 
+            val_dict["src_weights"]= compute_weights(val_dict["src_feature"], 
                                           val_dict["src_label"], 
-                                          val_dict["src_index"],
                                           val_dict["src_center"])
 
-            val_dict["tar_label_ps_ord"] = val_dict["tar_label_ps"][val_dict["tar_index"]]
+            #val_dict["tar_label_ps_ord"] = val_dict["tar_label_kmeans"][val_dict["tar_index"]]
 
-            val_dict["th"] = compute_threthold(val_dict["tar_weights_ord"], 
-                                               val_dict["tar_label_ps_ord"], 
+            val_dict["th"] = compute_threthold(val_dict["tar_weights"], 
+                                               val_dict["tar_label_ps"], 
                                                args.num_classes)
-
+            
             wandb.log({"src_acc": val_dict["src_acc"], 
                        "tar_acc": val_dict["tar_acc"], 
                        "cluster_acc": val_dict["tar_acc_cluster"],

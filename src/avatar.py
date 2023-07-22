@@ -63,6 +63,6 @@ class WAVATAR(nn.Module):
 
         prob_p_dis = class_output[:, -1].unsqueeze(1)
         prob_p_class = class_output[:, :-1]
-        prob_p_class = prob_p_class / (1-prob_p_dis)
+        prob_p_class = prob_p_class / (1-prob_p_dis+1e-6)
 
         return prob_p_class, prob_p_dis, x

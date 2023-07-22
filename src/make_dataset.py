@@ -20,8 +20,8 @@ def save_cwru(df, savepath, condition, segment_length):
     data = df[df["condition"].isin(condition)]
     y = data["label"].to_numpy().reshape(-1, 1)
     x = data.loc[:, ~data.columns.isin(["filename", "label", "condition"])].to_numpy()
-    #x = MinMaxScaler().fit_transform(x)
-    x = StandardScaler().fit_transform(x)
+    x = StandardScaler().fit_transform(x.reshape(-1, 1))
+    #x = StandardScaler().fit_transform(x)
     x = x.reshape(-1, 1, segment_length)
     np.savez(savepath, x=x, y=y)
 
@@ -71,8 +71,8 @@ def prepare_ims(segment_length=2048):
 
     X = np.concatenate([normal_X, inner_X, outer_X, ball_X], axis=0)
     # X = scale_signal(X, mean_std[0], mean_std[1])
-    #X = MinMaxScaler().fit_transform(X)
-    X = StandardScaler().fit_transform(X)
+    X = StandardScaler().fit_transform(X.reshape(-1, 1))
+    #X = StandardScaler().fit_transform(X)
     X = X.reshape(-1, 1, segment_length)
     y = np.concatenate([normal_y, inner_y, outer_y, ball_y], axis=0)
     y = y.reshape(-1, 1)
@@ -87,9 +87,11 @@ def format_data_ims(file_name, fault_pattern, segment_length=2048):
     temp = pd.read_csv(open(file_name,'r'), delim_whitespace=True, header=None)
     N = temp.shape[0]
     val = temp[fault_column[fault_pattern]].values
-    cs = CubicSpline(np.arange(N), val)
-    xs = np.arange(0, N, 0.1)
-    val = cs(xs)
+    #val = StandardScaler().fit_transform(val.reshape(-1, 1))
+    #val = val.reshape(1, -)
+    #cs = CubicSpline(np.arange(N), val)
+    #xs = np.arange(0, N, 0.1)
+    #val = cs(xs)
     splitted_val = np.stack(np.array_split(val, N//segment_length))
 
     return splitted_val, np.repeat(label[fault_pattern], N//segment_length)

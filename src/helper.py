@@ -189,12 +189,11 @@ def get_params(model, param_name):
     return params
 
 
-def compute_weights(features, targets, index, cen):
+def compute_weights(features, targets, cen):
     # compute source weights
     cos_sim_temp = features.unsqueeze(1) * cen.unsqueeze(0)
     cos_sim = 0.5 * (1 + cos_sim_temp.sum(2) / (features.norm(2, dim=1, keepdim=True) * cen.norm(2, dim=1, keepdim=True).t() + 1e-6))
     cs = torch.gather(cos_sim, 1, targets.unsqueeze(1)).squeeze(1)
-    cs = cs[index]
 
     del cos_sim_temp
     gc.collect()
@@ -229,3 +228,11 @@ def get_tensor_dimensions_impl(model, layer, image_size, for_input=False):
     dummy_var = torch.zeros(1, 3, image_size, image_size)
     model(dummy_var)
     return t_dims
+
+def sort_list(list1, key, dtype=torch.float32):
+ 
+    out = torch.zeros(list1.shape, dtype=dtype).to(list1.device)
+    for k in key:
+        out[k] = list1[k]
+
+    return out

@@ -62,31 +62,31 @@ def train_avatar_batch(model, src_train_batch, tar_train_batch,
 
 
     loss_dict["src_loss_domain"] = adversarialLoss(args=args, epoch=cur_epoch, prob_p_dis=src_domain_prob, 
-                                                    index=src_idx, weights_ord=val_dict["src_weights_ord"], 
+                                                    index=src_idx, weights_ord=val_dict["src_weights"], 
                                                     src=True, is_encoder=True)
 
-    #assert math.isnan(loss_dict["src_loss_domain"]) == False
+    assert math.isnan(loss_dict["src_loss_domain"]) == False
 
     loss_dict["tar_loss_domain"] = adversarialLoss(args=args, epoch=cur_epoch, prob_p_dis=tar_domain_prob, 
-                                                    index=tar_idx, weights_ord=val_dict["tar_weights_ord"], 
+                                                    index=tar_idx, weights_ord=val_dict["tar_weights"], 
                                                     src=False, is_encoder=True)
 
-    #assert math.isnan(loss_dict["tar_loss_domain"]) == False
+    assert math.isnan(loss_dict["tar_loss_domain"]) == False
 
     loss_dict["src_loss_class"] = srcClassifyLoss(src_class_prob, src_target, 
-                                                  index=src_idx, weights_ord=val_dict["src_weights_ord"])
+                                                  index=src_idx, weights_ord=val_dict["src_weights"])
 
-    #assert math.isnan(loss_dict["src_loss_class"]) == False
+    assert math.isnan(loss_dict["src_loss_class"]) == False
 
     loss_dict["tar_loss_class"] = tarClassifyLoss(args=args, epoch=cur_epoch, tar_cls_p=tar_class_prob, 
-                                                  target_ps_ord=val_dict["tar_label_ps_ord"], 
-                                                  index=tar_idx, weights_ord=val_dict["tar_weights_ord"],
+                                                  target_ps_ord=val_dict["tar_label_kmeans"], 
+                                                  index=tar_idx, weights_ord=val_dict["tar_weights"],
                                                   th=val_dict["th"])
-    #assert math.isnan(loss_dict["tar_loss_class"]) == False
+    assert math.isnan(loss_dict["tar_loss_class"]) == False
 
 
-    loss_dict["encoder_loss"]= alpha * 0.5 * (loss_dict["src_loss_domain"] + loss_dict["tar_loss_domain"]) + \
-                                            loss_dict["src_loss_class"] + alpha * loss_dict["tar_loss_class"]
+    loss_dict["encoder_loss"]= alpha * (0.5 * (loss_dict["src_loss_domain"] + loss_dict["tar_loss_domain"]) + \
+                                            loss_dict["src_loss_class"] + loss_dict["tar_loss_class"])
     
     loss_dict["encoder_loss"].backward()
     optimizer_dict["encoder"].step()
@@ -96,31 +96,31 @@ def train_avatar_batch(model, src_train_batch, tar_train_batch,
     src_class_prob, src_domain_prob, _ = model(src_input)
     tar_class_prob, tar_domain_prob, _ = model(tar_input)
     loss_dict["src_loss_domain"] = adversarialLoss(args=args, epoch=cur_epoch, prob_p_dis=src_domain_prob, 
-                                                    index=src_idx, weights_ord=val_dict["src_weights_ord"], 
+                                                    index=src_idx, weights_ord=val_dict["src_weights"], 
                                                     src=True, is_encoder=False)
 
     #assert math.isnan(loss_dict["src_loss_domain"]) == False
 
     loss_dict["tar_loss_domain"] = adversarialLoss(args=args, epoch=cur_epoch, prob_p_dis=tar_domain_prob, 
-                                                    index=tar_idx, weights_ord=val_dict["tar_weights_ord"], 
+                                                    index=tar_idx, weights_ord=val_dict["tar_weights"], 
                                                     src=False, is_encoder=True)
 
     #assert math.isnan(loss_dict["tar_loss_domain"]) == False
 
     loss_dict["src_loss_class"] = srcClassifyLoss(src_class_prob, src_target, 
-                                                  index=src_idx, weights_ord=val_dict["src_weights_ord"])
+                                                  index=src_idx, weights_ord=val_dict["src_weights"])
 
     #assert math.isnan(loss_dict["src_loss_class"]) == False
 
     loss_dict["tar_loss_class"] = tarClassifyLoss(args=args, epoch=cur_epoch, tar_cls_p=tar_class_prob, 
-                                                  target_ps_ord=val_dict["tar_label_ps_ord"], 
-                                                  index=tar_idx, weights_ord=val_dict["tar_weights_ord"],
+                                                  target_ps_ord=val_dict["tar_label_kmeans"], 
+                                                  index=tar_idx, weights_ord=val_dict["tar_weights"],
                                                   th=val_dict["th"])
 
     #assert torch.isnan(loss_dict["tar_loss_class"]) == False
 
-    loss_dict["classifier_loss"]= alpha * (loss_dict["src_loss_domain"] + loss_dict["tar_loss_domain"]) + \
-                                        loss_dict["src_loss_class"] + alpha * loss_dict["tar_loss_class"]
+    loss_dict["classifier_loss"]= alpha * (0.5 * (loss_dict["src_loss_domain"] + loss_dict["tar_loss_domain"]) + \
+                                        loss_dict["src_loss_class"] + loss_dict["tar_loss_class"])
 
     loss_dict["classifier_loss"].backward()
     optimizer_dict["classifier"].step()

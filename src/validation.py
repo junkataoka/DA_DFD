@@ -2,6 +2,7 @@ import torchmetrics
 import torch
 from avatar import WAVATAR
 from dataloader import generate_dataset
+from helper import sort_list
 
 
 def validate(model, src_dataloader, tar_dataloader, num_classes, logger):
@@ -51,6 +52,7 @@ def validate(model, src_dataloader, tar_dataloader, num_classes, logger):
             out_dict["src_feature"].append(src_feature)
             out_dict["src_index"].append(idx)
 
+
         c_src /= count_s
         s_acc_all = s_cls_metric.compute()  
         out_dict["src_center"] = c_src
@@ -79,8 +81,17 @@ def validate(model, src_dataloader, tar_dataloader, num_classes, logger):
             out_dict["tar_feature"].append(tar_feature)
             out_dict["tar_index"].append(idx)
 
+
         c_tar /= count_t
         out_dict["tar_center"] = c_tar
         out_dict["tar_acc"] = t_cls_metric.compute()  
 
-    return {k: torch.concat(v, dim=0) if type(v) is list else v for k, v in out_dict.items()}
+    out_dict = {k: torch.concat(v, dim=0) if type(v) is list else v for k, v in out_dict.items()}
+    out_dict["src_label"] = sort_list(out_dict["src_label"], key=out_dict["src_index"], dtype=torch.long)
+    out_dict["src_feature"] = sort_list(out_dict["src_feature"], key=out_dict["src_index"], dtype=torch.float32)
+    out_dict["tar_label"] = sort_list(out_dict["tar_label"], key=out_dict["tar_index"], dtype=torch.long)
+    out_dict["tar_label_ps"] = sort_list(out_dict["tar_label_ps"], key=out_dict["tar_index"], dtype=torch.long)
+    out_dict["tar_feature"] = sort_list(out_dict["tar_feature"], key=out_dict["tar_index"], dtype=torch.float32)
+    
+    return out_dict
+

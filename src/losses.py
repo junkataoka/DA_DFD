@@ -1,4 +1,5 @@
 import torch.nn.functional as F
+import math
 import torch
 
 def adversarialLoss(args, epoch, prob_p_dis, index, weights_ord, src=True, is_encoder=True):
@@ -54,6 +55,9 @@ def tarClassifyLoss(args, epoch, tar_cls_p, target_ps_ord, index, weights_ord, t
         else:
             pos_loss = - (tar_weights[pos_mask==1] * (prob_q[pos_mask==1] * tar_cls_p[pos_mask==1].log()).sum(1)).mean()
             neg_loss = torch.tensor([0]).float().cuda()
+    
+    assert math.isnan(pos_loss) == False
+    assert math.isnan(neg_loss) == False
 
     return pos_loss + neg_loss
 
