@@ -5,7 +5,7 @@ from helper import (count_batch_on_large_dataset, weight_init, batch_norm_init,
 from avatar import WAVATAR
 from validation import validate
 from dataloader import generate_dataset
-from train import train_avatar_batch
+from train import train_batch
 from kernel_kmeans import kernel_k_means_wrapper
 import torch
 import os
@@ -87,19 +87,24 @@ def main(args):
     else:
         print("Pretraining model from scratch")
         model_name = f"src_{args.model}.pth"
+    model = model.to(args.device)
 
     # define optimizer 
-    params_enc = get_params(model, ["net", "fc"])
-    params_cls = get_params(model, ["classifier"])
-    optimizer_dict = {
-        "encoder": torch.optim.SGD(params_enc,
+    #params_enc = get_params(model, ["net", "fc"])
+    #params_cls = get_params(model, ["classifier"])
+    optimizer = torch.optim.SGD(model.parameters(),
                                 lr=args.lr,
                                 momentum=args.momentum,
-                                weight_decay=args.weight_decay),
-        "classifier": torch.optim.SGD(params_cls,
-                                lr=args.lr,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay)}
+                                weight_decay=args.weight_decay)
+    #optimizer_dict = {
+    #    "encoder": torch.optim.SGD(params_enc,
+    #                            lr=args.lr,
+    #                            momentum=args.momentum,
+    #                            weight_decay=args.weight_decay),
+    #    "classifier": torch.optim.SGD(params_cls,
+    #                            lr=args.lr,
+    #                            momentum=args.momentum,
+    #                            weight_decay=args.weight_decay)}
 
     # Count batch size
     batch_count = count_batch_on_large_dataset(src_train_dataloader, tar_train_dataloader)
@@ -109,7 +114,7 @@ def main(args):
     epoch = 0
     count_itern_each_epoch = 0
     best_acc = 0.0
-    criterion = torch.nn.NLLLoss()
+    criterion = torch.nn.NLLLoss().cuda()
 
     for itern in range(num_itern_total):
         src_train_batch = enumerate(src_train_dataloader)
@@ -117,33 +122,11 @@ def main(args):
 
         if (itern==0 or count_itern_each_epoch==batch_count):
 
-            # Validate and compute source and target domain accuracy, and cluster center
-            val_dict = validate(model, src_val_dataloader, tar_val_dataloader, args.num_classes, wandb)
+            # Validate
+            val_dict = validate(model, src_val_dataloader, tar_val_dataloader, args.num_classes)
 
-            # Comptue target cluster center
-            
-            val_dict["tar_center"], val_dict["tar_label_kmeans"], val_dict["tar_acc_cluster"] = kernel_k_means_wrapper(val_dict["tar_feature"], 
-                                                                   val_dict["tar_label_ps"], 
-                                                                   val_dict["tar_label"], 
-                                                                   epoch, args, best_prec=1e-4)
-
-            val_dict["tar_weights"] = compute_weights(val_dict["tar_feature"], 
-                                          val_dict["tar_label_ps"], 
-                                          val_dict["tar_center"])
-
-            val_dict["src_weights"]= compute_weights(val_dict["src_feature"], 
-                                          val_dict["src_label"], 
-                                          val_dict["src_center"])
-
-            #val_dict["tar_label_ps_ord"] = val_dict["tar_label_kmeans"][val_dict["tar_index"]]
-
-            val_dict["th"] = compute_threthold(val_dict["tar_weights"], 
-                                               val_dict["tar_label_ps"], 
-                                               args.num_classes)
-            
             wandb.log({"src_acc": val_dict["src_acc"], 
                        "tar_acc": val_dict["tar_acc"], 
-                       "cluster_acc": val_dict["tar_acc_cluster"],
                        "epoch": epoch})
 
             if val_dict["tar_acc"] > best_acc:
@@ -159,9 +142,9 @@ def main(args):
                 count_itern_each_epoch = 0
                 epoch += 1
 
-        train_avatar_batch(model=model, src_train_batch=src_train_batch, tar_train_batch=tar_trai_batch, 
+        train_batch(model=model, src_train_batch=src_train_batch, tar_train_batch=tar_trai_batch, 
                             src_train_dataloader=src_train_dataloader, tar_train_dataloader=tar_train_dataloader, 
-                            optimizer_dict=optimizer_dict, cur_epoch=epoch, logger=wandb, val_dict=val_dict, args=args)
+                            optimizer_dict=optimizer, criterion=criterion, cur_epoch=epoch, logger=wandb, args=args)
 
         count_itern_each_epoch += 1
 
