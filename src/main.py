@@ -74,10 +74,10 @@ def main(args):
                                         batch_size=args.batch_size, shuffle=True, drop_last=False) 
     
     # define model 
-    #model = WAVATAR(C_in=1, class_num=args.num_classes).to(args.device)
-    #model.apply(weight_init)
-    #model.apply(batch_norm_init)
-    model = get_model(model_name=f"{args.model}", C_in=1, class_num=args.num_classes, checkpoint="/data/home/jkataok1/DA_DFD/src_models/audio_mdl.pth")
+    model = WAVATAR(C_in=1, class_num=args.num_classes).to(args.device)
+    model.apply(weight_init)
+    model.apply(batch_norm_init)
+    #model = get_model(model_name=f"{args.model}", C_in=1, class_num=args.num_classes, checkpoint="/data/home/jkataok1/DA_DFD/src_models/audio_mdl.pth")
 
     if args.pretrained:
         print("load pretrained model from {}".format(args.source_model_path))
@@ -90,21 +90,21 @@ def main(args):
     model = model.to(args.device)
 
     # define optimizer 
-    #params_enc = get_params(model, ["net", "fc"])
-    #params_cls = get_params(model, ["classifier"])
+    params_enc = get_params(model, ["net", "fc"])
+    params_cls = get_params(model, ["classifier"])
     optimizer = torch.optim.SGD(model.parameters(),
                                 lr=args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
-    #optimizer_dict = {
-    #    "encoder": torch.optim.SGD(params_enc,
-    #                            lr=args.lr,
-    #                            momentum=args.momentum,
-    #                            weight_decay=args.weight_decay),
-    #    "classifier": torch.optim.SGD(params_cls,
-    #                            lr=args.lr,
-    #                            momentum=args.momentum,
-    #                            weight_decay=args.weight_decay)}
+    optimizer_dict = {
+        "encoder": torch.optim.SGD(params_enc,
+                                lr=args.lr,
+                                momentum=args.momentum,
+                                weight_decay=args.weight_decay),
+        "classifier": torch.optim.SGD(params_cls,
+                                lr=args.lr,
+                                momentum=args.momentum,
+                                weight_decay=args.weight_decay)}
 
     # Count batch size
     batch_count = count_batch_on_large_dataset(src_train_dataloader, tar_train_dataloader)
