@@ -11,6 +11,7 @@ import torch
 import os
 import wandb
 import argparse
+from construct_model import get_model
 
 parser = argparse.ArgumentParser(description='DA_DFD', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--lr', type=float, default=0.0005, help='learning rate')
@@ -29,6 +30,7 @@ parser.add_argument('--log', type=str, default="log", help='log')
 parser.add_argument('--pretrained', action='store_true')
 parser.add_argument('--source_model_path', type=str, default="src_models", help='source model path')
 parser.add_argument('--warmup_epoch', type=int, default=1, help='warm up epoch size')
+parser.add_argument('--model', type=str, default="ast", help='model name')
 
 args = parser.parse_args()
 
@@ -72,18 +74,19 @@ def main(args):
                                         batch_size=args.batch_size, shuffle=True, drop_last=False) 
     
     # define model 
-    model = WAVATAR(C_in=1, class_num=args.num_classes).to(args.device)
-    model.apply(weight_init)
-    model.apply(batch_norm_init)
+    #model = WAVATAR(C_in=1, class_num=args.num_classes).to(args.device)
+    #model.apply(weight_init)
+    #model.apply(batch_norm_init)
+    model = get_model(model_name=f"{args.model}", C_in=1, class_num=args.num_classes, checkpoint="/data/home/jkataok1/DA_DFD/src_models/audio_mdl.pth")
 
     if args.pretrained:
         print("load pretrained model from {}".format(args.source_model_path))
-        src_model_name = "src_wavatar.pth"
-        model_name = "adapted_wavatar.pth"
+        src_model_name = f"src_{args.model}.pth"
+        model_name = f"adapted_{args.model}.pth"
         model.load_state_dict(torch.load(os.path.join(args.source_model_path, "_".join([args.src_data, args.src_domain, args.tar_data, args.tar_domain, src_model_name]))))
     else:
         print("Pretraining model from scratch")
-        model_name = "src_wavatar.pth"
+        model_name = f"src_{args.model}.pth"
 
     # define optimizer 
     params_enc = get_params(model, ["net", "fc"])

@@ -3,4 +3,5 @@ checkpoints/*
 log/*
 wandb
 src_models/*
+AST
 
