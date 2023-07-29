@@ -12,37 +12,37 @@ class WAVATAR(nn.Module):
             nn.Conv1d(in_channels=C_in, out_channels=16, kernel_size=64, stride=16, padding=1),
             nn.BatchNorm1d(16, affine=True),
             nn.ReLU(inplace=True),
-            nn.MaxPool1d(kernel_size=2, stride=2),  # 默认padding=0
+            #nn.MaxPool1d(kernel_size=2, stride=2),  # 默认padding=0
 
             nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm1d(32, affine=True),
             nn.ReLU(inplace=True),
-            nn.MaxPool1d(kernel_size=2, stride=2),
+            #nn.MaxPool1d(kernel_size=2, stride=2),
 
             nn.Conv1d(in_channels=32, out_channels=64, kernel_size=2, stride=1, padding=1),
             nn.BatchNorm1d(64, affine=True),
             nn.ReLU(inplace=True),
-            nn.MaxPool1d(kernel_size=2, stride=2),
+            #nn.MaxPool1d(kernel_size=2, stride=2),
 
             nn.Conv1d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm1d(64, affine=True),
             nn.ReLU(inplace=True),
-            nn.MaxPool1d(kernel_size=2, stride=2),
+            #nn.MaxPool1d(kernel_size=2, stride=2),
 
             nn.Conv1d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=0),
             nn.BatchNorm1d(64, affine=True),
             nn.ReLU(inplace=True),
-            nn.MaxPool1d(kernel_size=2, stride=2),
+            #nn.MaxPool1d(kernel_size=2, stride=2),
         )
 
         self.fc = nn.Sequential(
-            nn.Linear(in_features=192, out_features=192),
+            nn.Linear(in_features=2816, out_features=2816//2),
             nn.ReLU(),
-            nn.Linear(in_features=192, out_features=192),
+            nn.Linear(in_features=2816//2, out_features=2816//4),
             nn.ReLU()
         )
         self.classifier = nn.Sequential(
-            nn.Linear(in_features=192, out_features=class_num+1),
+            nn.Linear(in_features=2816//4, out_features=class_num+1),
             nn.Softmax(dim=1)
         )
 

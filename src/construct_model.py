@@ -12,7 +12,7 @@ class Identity(nn.Module):
 
 def get_model(model_name, C_in, class_num, checkpoint=None):
 
-    if model_name == 'wavatar':
+    if model_name == 'avatar':
         return WAVATAR(C_in, class_num)
     elif model_name == 'ast':
         model = ASTModel(label_dim=class_num, input_tdim=2048, imagenet_pretrain=False, audioset_pretrain=False)

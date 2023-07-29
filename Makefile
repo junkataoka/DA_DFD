@@ -100,11 +100,12 @@ train_CWRU2CWRU: loadmodule
 
 .PHONY: pretrain_CWRU2IMS
 pretrain_CWRU2IMS: loadmodule
-	sbatch pretrain_slurm_CWRU2IMS.sh 0 0; \
+	#sbatch pretrain_slurm_CWRU2IMS.sh 0 0; \
 	#sbatch pretrain_slurm_CWRU2IMS.sh 1 0; \
 	#sbatch pretrain_slurm_CWRU2IMS.sh 2 0; \
 	#sbatch pretrain_slurm_CWRU2IMS.sh 3 0; \
 	#sbatch pretrain_slurm_CWRU2IMS.sh all 0; \
+	sbatch pretrain_slurm_CWRU2IMS.sh ast_feature ast_feature; \
 	
 .PHONY: train_CWRU2IMS
 train_CWRU2IMS: loadmodule

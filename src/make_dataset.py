@@ -6,6 +6,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from scipy.interpolate import CubicSpline
+from scipy.signal import spectrogram
 
 def create_dataset_cwru(datapath_list, segment_length=2048, normalize=True):
     res = []
@@ -16,14 +17,32 @@ def create_dataset_cwru(datapath_list, segment_length=2048, normalize=True):
     df_all, mean, std = get_df_all(df, segment_length, normalize)
     return df_all, mean, std
 
-def save_cwru(df, savepath, condition, segment_length):
+def save_cwru(df, savepath, condition, segment_length, fs=12000, nperseg=128):
     data = df[df["condition"].isin(condition)]
     y = data["label"].to_numpy().reshape(-1, 1)
     x = data.loc[:, ~data.columns.isin(["filename", "label", "condition"])].to_numpy()
+    res_x = []
+    for i in range(len(x)):
+        f, t, Sxx = spectrogram(np.array(x[i]), fs=fs, nperseg=nperseg)
+        res_x.append(Sxx)
+    res_x = np.stack(res_x)
+    res_x_norm = (res_x - res_x.mean(axis=(0, 2), keepdims=True)) / (res_x.std(axis=(0, 2), keepdims=True)+1e-8)
+
     x = StandardScaler().fit_transform(x.reshape(-1, 1))
-    #x = StandardScaler().fit_transform(x)
     x = x.reshape(-1, 1, segment_length)
     np.savez(savepath, x=x, y=y)
+    np.savez(savepath.replace(".npz", "_spectrogram.npz"), x=res_x_norm, y=y)
+
+
+def generate_spectrogram(df, fs=12000, nperseg=128):
+    res_x = []
+    for i in range(len(df)):
+        x = df.loc[i, ~df.columns.isin(['label', "filename"])].to_list()
+        f, t, Sxx = spectrogram(np.array(x), fs=fs, nperseg=nperseg)
+        res_x.append(Sxx)
+    res_x = np.stack(res_x)
+    res_x_norm = (res_x - res_x.mean(axis=(0, 2), keepdims=True)) / (res_x.std(axis=(0, 2), keepdims=True)+1e-8)
+    return res_x_norm
 
 def prepare_cwru(segment_length, normalize):
 
@@ -44,7 +63,7 @@ def prepare_cwru(segment_length, normalize):
     save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/all.npz", condition=[0, 1, 2, 3],  segment_length=segment_length)
     np.savez("/data/home/jkataok1/DA_DFD/data/processed/CWRU/mean_std.npz", x=np.array([mean, std]))
 
-def prepare_ims(segment_length=2048):
+def prepare_ims(segment_length=2048, fs=20000, nperseg=128):
     save_path = "/data/home/jkataok1/DA_DFD/data/processed/IMS/0.npz"
     datapath_normal = glob.glob("/data/home/jkataok1/DA_DFD/data/raw/IMS/normal/*")
     datapath_inner = glob.glob("/data/home/jkataok1/DA_DFD/data/raw/IMS/inner/*")
@@ -70,6 +89,12 @@ def prepare_ims(segment_length=2048):
     mean_std = np.load("/data/home/jkataok1/DA_DFD/data/processed/CWRU/mean_std.npz")["x"]
 
     X = np.concatenate([normal_X, inner_X, outer_X, ball_X], axis=0)
+    res_x = []
+    for i in range(len(X)):
+        f, t, Sxx = spectrogram(np.array(X[i]), fs=fs, nperseg=nperseg)
+        res_x.append(Sxx)
+    res_x = np.stack(res_x)
+    res_x_norm = (res_x - res_x.mean(axis=(0, 2), keepdims=True)) / (res_x.std(axis=(0, 2), keepdims=True)+1e-8)
     # X = scale_signal(X, mean_std[0], mean_std[1])
     X = StandardScaler().fit_transform(X.reshape(-1, 1))
     #X = StandardScaler().fit_transform(X)
@@ -77,6 +102,7 @@ def prepare_ims(segment_length=2048):
     y = np.concatenate([normal_y, inner_y, outer_y, ball_y], axis=0)
     y = y.reshape(-1, 1)
     np.savez(save_path, x=X, y=y)
+    np.savez(save_path.replace(".npz", "_spectrogram.npz"), x=res_x_norm, y=y)
 
     
    
@@ -87,11 +113,6 @@ def format_data_ims(file_name, fault_pattern, segment_length=2048):
     temp = pd.read_csv(open(file_name,'r'), delim_whitespace=True, header=None)
     N = temp.shape[0]
     val = temp[fault_column[fault_pattern]].values
-    #val = StandardScaler().fit_transform(val.reshape(-1, 1))
-    #val = val.reshape(1, -)
-    #cs = CubicSpline(np.arange(N), val)
-    #xs = np.arange(0, N, 0.1)
-    #val = cs(xs)
     splitted_val = np.stack(np.array_split(val, N//segment_length))
 
     return splitted_val, np.repeat(label[fault_pattern], N//segment_length)

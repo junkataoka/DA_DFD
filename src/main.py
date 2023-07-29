@@ -2,10 +2,9 @@
 import torch.utils.data as Data
 from helper import (count_batch_on_large_dataset, weight_init, batch_norm_init, 
                     get_params, compute_threthold, compute_weights)
-from avatar import WAVATAR
 from validation import validate
 from dataloader import generate_dataset
-from train import train_batch
+from train import train_avatar_batch
 from kernel_kmeans import kernel_k_means_wrapper
 import torch
 import os
@@ -30,7 +29,8 @@ parser.add_argument('--log', type=str, default="log", help='log')
 parser.add_argument('--pretrained', action='store_true')
 parser.add_argument('--source_model_path', type=str, default="src_models", help='source model path')
 parser.add_argument('--warmup_epoch', type=int, default=1, help='warm up epoch size')
-parser.add_argument('--model', type=str, default="ast", help='model name')
+parser.add_argument('--model', type=str, default="avatar", help='model name')
+
 
 args = parser.parse_args()
 
@@ -74,10 +74,8 @@ def main(args):
                                         batch_size=args.batch_size, shuffle=True, drop_last=False) 
     
     # define model 
-    model = WAVATAR(C_in=1, class_num=args.num_classes).to(args.device)
-    model.apply(weight_init)
-    model.apply(batch_norm_init)
-    #model = get_model(model_name=f"{args.model}", C_in=1, class_num=args.num_classes, checkpoint="/data/home/jkataok1/DA_DFD/src_models/audio_mdl.pth")
+    model = get_model(model_name=f"{args.model}", C_in=1, class_num=args.num_classes)
+
 
     if args.pretrained:
         print("load pretrained model from {}".format(args.source_model_path))
@@ -87,15 +85,11 @@ def main(args):
     else:
         print("Pretraining model from scratch")
         model_name = f"src_{args.model}.pth"
-    model = model.to(args.device)
 
+    model = model.to(args.device)
     # define optimizer 
     params_enc = get_params(model, ["net", "fc"])
     params_cls = get_params(model, ["classifier"])
-    optimizer = torch.optim.SGD(model.parameters(),
-                                lr=args.lr,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay)
     optimizer_dict = {
         "encoder": torch.optim.SGD(params_enc,
                                 lr=args.lr,
@@ -114,7 +108,7 @@ def main(args):
     epoch = 0
     count_itern_each_epoch = 0
     best_acc = 0.0
-    criterion = torch.nn.NLLLoss().cuda()
+    criterion = torch.nn.NLLLoss()
 
     for itern in range(num_itern_total):
         src_train_batch = enumerate(src_train_dataloader)
@@ -122,11 +116,33 @@ def main(args):
 
         if (itern==0 or count_itern_each_epoch==batch_count):
 
-            # Validate
-            val_dict = validate(model, src_val_dataloader, tar_val_dataloader, args.num_classes)
+            # Validate and compute source and target domain accuracy, and cluster center
+            val_dict = validate(model, src_val_dataloader, tar_val_dataloader, args.num_classes, wandb)
 
+            # Comptue target cluster center
+            
+            val_dict["tar_center"], val_dict["tar_label_kmeans"], val_dict["tar_acc_cluster"] = kernel_k_means_wrapper(val_dict["tar_feature"], 
+                                                                   val_dict["tar_label_ps"], 
+                                                                   val_dict["tar_label"], 
+                                                                   epoch, args, best_prec=1e-4)
+
+            val_dict["tar_weights"] = compute_weights(val_dict["tar_feature"], 
+                                          val_dict["tar_label_ps"], 
+                                          val_dict["tar_center"])
+
+            val_dict["src_weights"]= compute_weights(val_dict["src_feature"], 
+                                          val_dict["src_label"], 
+                                          val_dict["src_center"])
+
+            #val_dict["tar_label_ps_ord"] = val_dict["tar_label_kmeans"][val_dict["tar_index"]]
+
+            val_dict["th"] = compute_threthold(val_dict["tar_weights"], 
+                                               val_dict["tar_label_ps"], 
+                                               args.num_classes)
+            
             wandb.log({"src_acc": val_dict["src_acc"], 
                        "tar_acc": val_dict["tar_acc"], 
+                       "cluster_acc": val_dict["tar_acc_cluster"],
                        "epoch": epoch})
 
             if val_dict["tar_acc"] > best_acc:
@@ -142,14 +158,11 @@ def main(args):
                 count_itern_each_epoch = 0
                 epoch += 1
 
-        train_batch(model=model, src_train_batch=src_train_batch, tar_train_batch=tar_trai_batch, 
+        train_avatar_batch(model=model, src_train_batch=src_train_batch, tar_train_batch=tar_trai_batch, 
                             src_train_dataloader=src_train_dataloader, tar_train_dataloader=tar_train_dataloader, 
-                            optimizer_dict=optimizer, criterion=criterion, cur_epoch=epoch, logger=wandb, args=args)
+                            optimizer_dict=optimizer_dict, cur_epoch=epoch, logger=wandb, val_dict=val_dict, args=args)
 
         count_itern_each_epoch += 1
 
 if __name__ == "__main__":
     main(args)
-
-
-# %%
