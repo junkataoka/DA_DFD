@@ -60,3 +60,9 @@ Project Organization
 ```bash
 srun -n1 --partition=gpucompute --pty bash
 ```
+* Launching jupyer notebook
+```bash
+source ~/mlenv/bin/activate \
+module load cuda11.1/toolkit/11.1.1; \
+jupyter notebook --no-browser --ip=$(hostname -f) --port="9999"
+```

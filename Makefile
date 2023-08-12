@@ -105,7 +105,11 @@ pretrain_CWRU2IMS: loadmodule
 	#sbatch pretrain_slurm_CWRU2IMS.sh 2 0; \
 	#sbatch pretrain_slurm_CWRU2IMS.sh 3 0; \
 	#sbatch pretrain_slurm_CWRU2IMS.sh all 0; \
-	sbatch pretrain_slurm_CWRU2IMS.sh ast_feature ast_feature; \
+	sbatch pretrain_slurm_CWRU2IMS.sh 0_spectrogram 0_spectrogram; \
+	sbatch pretrain_slurm_CWRU2IMS.sh 1_spectrogram 0_spectrogram; \
+	sbatch pretrain_slurm_CWRU2IMS.sh 2_spectrogram 0_spectrogram; \
+	sbatch pretrain_slurm_CWRU2IMS.sh 3_spectrogram 0_spectrogram; \
+	sbatch pretrain_slurm_CWRU2IMS.sh all_spectrogram 0_spectrogram; \
 	
 .PHONY: train_CWRU2IMS
 train_CWRU2IMS: loadmodule
@@ -121,7 +125,13 @@ pretrain_IMS2CWRU: loadmodule
 	#sbatch pretrain_slurm_IMS2CWRU.sh 0 1; \
 	#sbatch pretrain_slurm_IMS2CWRU.sh 0 2; \
 	#sbatch pretrain_slurm_IMS2CWRU.sh 0 3; \
-	sbatch pretrain_slurm_IMS2CWRU.sh 0 all; \
+	#sbatch pretrain_slurm_IMS2CWRU.sh 0 all; \
+	sbatch pretrain_slurm_IMS2CWRU.sh 0_spectrogram all_spectrogram \
+	sbatch pretrain_slurm_IMS2CWRU.sh 0_spectrogram 0_spectrogram; \
+	sbatch pretrain_slurm_IMS2CWRU.sh 0_spectrogram 1_spectrogram; \
+	sbatch pretrain_slurm_IMS2CWRU.sh 0_spectrogram 2_spectrogram; \
+	sbatch pretrain_slurm_IMS2CWRU.sh 0_spectrogram 3_spectrogram; \
+	
 	
 .PHONY: train_IMS2CWRU
 train_IMS2CWRU: loadmodule

@@ -17,7 +17,7 @@ def create_dataset_cwru(datapath_list, segment_length=2048, normalize=True):
     df_all, mean, std = get_df_all(df, segment_length, normalize)
     return df_all, mean, std
 
-def save_cwru(df, savepath, condition, segment_length, fs=12000, nperseg=128):
+def save_cwru(df, savepath, condition, segment_length, fs=1200, nperseg=128):
     data = df[df["condition"].isin(condition)]
     y = data["label"].to_numpy().reshape(-1, 1)
     x = data.loc[:, ~data.columns.isin(["filename", "label", "condition"])].to_numpy()
@@ -34,7 +34,7 @@ def save_cwru(df, savepath, condition, segment_length, fs=12000, nperseg=128):
     np.savez(savepath.replace(".npz", "_spectrogram.npz"), x=res_x_norm, y=y)
 
 
-def generate_spectrogram(df, fs=12000, nperseg=128):
+def generate_spectrogram(df, fs=1200, nperseg=20):
     res_x = []
     for i in range(len(df)):
         x = df.loc[i, ~df.columns.isin(['label', "filename"])].to_list()
@@ -44,8 +44,7 @@ def generate_spectrogram(df, fs=12000, nperseg=128):
     res_x_norm = (res_x - res_x.mean(axis=(0, 2), keepdims=True)) / (res_x.std(axis=(0, 2), keepdims=True)+1e-8)
     return res_x_norm
 
-def prepare_cwru(segment_length, normalize):
-
+def prepare_cwru(segment_length, normalize, fs, nperseg):
     datapath_de12 = "/data/home/jkataok1/DA_DFD/data/raw/CWRU/12k_DE"
     datapath_nor = "/data/home/jkataok1/DA_DFD/data/raw/CWRU/Normal"
     datapath_de48 = "/data/home/jkataok1/DA_DFD/data/raw/CWRU/48k_DE"
@@ -56,34 +55,34 @@ def prepare_cwru(segment_length, normalize):
     temp = data_path.tolist()
     condition = [int(temp[i].split('/')[-1].split('_')[-1].split(".")[0]) for i in range(len(temp))]
     df["condition"] = condition
-    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/0.npz", condition=[0], segment_length=segment_length)
-    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/1.npz", condition=[1], segment_length=segment_length)
-    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/2.npz", condition=[2],  segment_length=segment_length)
-    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/3.npz", condition=[3],  segment_length=segment_length)
-    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/all.npz", condition=[0, 1, 2, 3],  segment_length=segment_length)
+    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/0.npz", condition=[0], segment_length=segment_length, fs=fs, nperseg=nperseg)
+    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/1.npz", condition=[1], segment_length=segment_length, fs=fs, nperseg=nperseg)
+    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/2.npz", condition=[2],  segment_length=segment_length , fs=fs, nperseg=nperseg)
+    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/3.npz", condition=[3],  segment_length=segment_length, fs=fs, nperseg=nperseg)
+    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/all.npz", condition=[0, 1, 2, 3],  segment_length=segment_length, fs=fs, nperseg=nperseg)
     np.savez("/data/home/jkataok1/DA_DFD/data/processed/CWRU/mean_std.npz", x=np.array([mean, std]))
 
-def prepare_ims(segment_length=2048, fs=20000, nperseg=128):
+def prepare_ims(segment_length=20480, fs=20480, nperseg=600):
     save_path = "/data/home/jkataok1/DA_DFD/data/processed/IMS/0.npz"
     datapath_normal = glob.glob("/data/home/jkataok1/DA_DFD/data/raw/IMS/normal/*")
     datapath_inner = glob.glob("/data/home/jkataok1/DA_DFD/data/raw/IMS/inner/*")
     datapath_outer = glob.glob("/data/home/jkataok1/DA_DFD/data/raw/IMS/outer/*")
     datapath_ball = glob.glob("/data/home/jkataok1/DA_DFD/data/raw/IMS/ball/*")
 
-    normal = [format_data_ims(datapath_normal[i], "normal") for i in range(len(datapath_normal))]
+    normal = [format_data_ims(datapath_normal[i], "normal", segment_length) for i in range(len(datapath_normal))]
     normal_X = np.concatenate([normal[i][0] for i in range(len(normal))] , axis=0)
     normal_y = np.concatenate([normal[i][1] for i in range(len(normal))] , axis=0)
     
-    inner = [format_data_ims(datapath_inner[i], "inner") for i in range(len(datapath_inner))]
+    inner = [format_data_ims(datapath_inner[i], "inner", segment_length) for i in range(len(datapath_inner))]
     inner_X = np.concatenate([inner[i][0] for i in range(len(inner))] , axis=0)
     inner_y = np.concatenate([inner[i][1] for i in range(len(inner))] , axis=0)
 
     
-    outer = [format_data_ims(datapath_outer[i], "outer") for i in range(len(datapath_outer))]
+    outer = [format_data_ims(datapath_outer[i], "outer", segment_length) for i in range(len(datapath_outer))]
     outer_X = np.concatenate([outer[i][0] for i in range(len(outer))] , axis=0)
     outer_y = np.concatenate([outer[i][1] for i in range(len(outer))] , axis=0)
 
-    ball = [format_data_ims(datapath_ball[i], "ball") for i in range(len(datapath_ball))]
+    ball = [format_data_ims(datapath_ball[i], "ball", segment_length) for i in range(len(datapath_ball))]
     ball_X = np.concatenate([ball[i][0] for i in range(len(ball))] , axis=0)
     ball_y = np.concatenate([ball[i][1] for i in range(len(ball))] , axis=0)
     mean_std = np.load("/data/home/jkataok1/DA_DFD/data/processed/CWRU/mean_std.npz")["x"]
@@ -118,8 +117,8 @@ def format_data_ims(file_name, fault_pattern, segment_length=2048):
     return splitted_val, np.repeat(label[fault_pattern], N//segment_length)
     
 def main():
-    prepare_cwru(2048, False)
-    prepare_ims(2048)
+    prepare_cwru(2048, False, 2048, 128)
+    prepare_ims(2048, 2048, 128)
 
 
 # %%
