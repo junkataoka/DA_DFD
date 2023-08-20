@@ -18,8 +18,7 @@ def validate(model, src_dataloader, tar_dataloader, num_classes, logger):
             src_input = src_input.float().cuda()
             src_target = src_target.long().cuda()
             src_cls_p = model(src_input)
-            print("src_cls_p", src_cls_p.shape)
-            s_acc = s_cls_metric(F.softmax(src_cls_p).argmax(-1).cpu(), src_target.reshape(-1).cpu())
+            s_acc = s_cls_metric(F.softmax(src_cls_p, dim=-1).argmax(-1).cpu(), src_target.reshape(-1).cpu())
 
         out_dict["src_acc"] = s_cls_metric.compute()  
 
@@ -29,7 +28,7 @@ def validate(model, src_dataloader, tar_dataloader, num_classes, logger):
             tar_target = tar_target.long().cuda()
 
             tar_cls_p = model(tar_input)
-            t_acc = t_cls_metric(F.softmax(tar_cls_p).argmax(-1).cpu(), tar_target.reshape(-1).cpu())
+            t_acc = t_cls_metric(F.softmax(tar_cls_p, dim=-1).argmax(-1).cpu(), tar_target.reshape(-1).cpu())
 
         out_dict["tar_acc"] = t_cls_metric.compute()  
 

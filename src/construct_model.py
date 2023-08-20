@@ -21,14 +21,15 @@ def get_model(model_name, C_in, class_num, checkpoint=None, input_time_dim=65, i
         if checkpoint:
             # order of keys in state_dict is same between model and checkpoint
             state_dict_temp = torch.load(checkpoint)
-            state_dict_temp2 = OrderedDict()
-            for k,v in state_dict_temp.items():
-                if "mlp_head" in k or "v.pos_embed" in k:
-                    pass
-                elif "module." in k:
-                    state_dict_temp2[k.replace("module.", "")] = state_dict_temp[k]
+            model_params = model.state_dict()
+            for name, param in state_dict_temp.items():
+                if name in model_params:
+                    model_params[name].copy_(param)
+                    print("copy {}".format(name), sep="\r")
+                else:
+                    print("skip {}".format(name), sep="\r")
+            model.load_state_dict(state_dict_temp, strict=False)
 
-            model.load_state_dict(state_dict_temp2, strict=False)
             #state_dict = model.state_dict()
 
             #for key1, key2 in zip(state_dict.keys(), state_dict_temp.keys()):

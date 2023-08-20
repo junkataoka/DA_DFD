@@ -76,7 +76,7 @@ def main(args):
     # define model 
     model = get_model(model_name=f"{args.model}", C_in=1, 
                       class_num=args.num_classes, 
-                      checkpoint='/data/home/jkataok1/DA_DFD/src_models/audio_mdl.pth')
+                      checkpoint='/data/home/jkataok1/DA_DFD/src_models/SimCLR.pth')
 
 
     if args.pretrained:
@@ -107,9 +107,9 @@ def main(args):
                                 weight_decay=args.weight_decay)
     # Count batch size
     batch_count = count_batch_on_large_dataset(src_train_dataloader, tar_train_dataloader)
-    # Count total iteration
+    # count total iteration
     num_itern_total = args.epochs * batch_count
-    # Initialize epoch
+    # initialize epoch
     epoch = 0
     count_itern_each_epoch = 0
     best_acc = 0.0
@@ -118,6 +118,7 @@ def main(args):
     for itern in range(num_itern_total):
         src_train_batch = enumerate(src_train_dataloader)
         tar_train_batch = enumerate(tar_train_dataloader)
+        print("itern: {}".format(itern), sep="\r")
 
         if (itern==0 or count_itern_each_epoch==batch_count):
 
@@ -150,7 +151,7 @@ def main(args):
                        "epoch": epoch})
 
             if not args.pretrained:
-                acc_name = "src_acc"
+                acc_name = "tar_acc"
             else:
                 acc_name = "tar_acc"
 
@@ -163,8 +164,8 @@ def main(args):
                 else:
                     torch.save(model.state_dict(), os.path.join(args.source_model_path, "_".join([args.src_data,args.src_domain, args.tar_data, args.tar_domain, model_name])))
                     
-            #if not args.pretrained:
-            #    model.load_state_dict(torch.load(os.path.join(args.source_model_path, "_".join([args.src_data,args.src_domain, args.tar_data, args.tar_domain, model_name]))))
+            if not args.pretrained:
+                model.load_state_dict(torch.load(os.path.join(args.source_model_path, "_".join([args.src_data,args.src_domain, args.tar_data, args.tar_domain, model_name]))))
 
             if itern != 0:
                 count_itern_each_epoch = 0
