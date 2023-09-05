@@ -13,6 +13,78 @@ from glob import glob
 from torch.nn.init import xavier_uniform_
 import math
 import gc
+import torch.nn.functional as F
+import torchvision.transforms as T
+
+def copy_domain_batch_norm(model):
+    for name, module in model.named_modules():
+        if name == "batch_norm_src":
+            src_running_mean = module.running_mean.data
+            src_running_var = module.running_var.data
+            src_weight = module.weight.data
+            src_bias = module.bias.data
+            src_num_batches_tracked = module.num_batches_tracked.data
+
+    for name, module in model.named_modules():
+        if name == "batch_norm_tar":
+            module.running_mean.data = src_running_mean
+            module.running_var.data = src_running_var
+            module.weight.data = src_weight
+            module.bias.data = src_bias
+            module.num_batches_tracked.data = src_num_batches_tracked
+            print("copying bn weights for {}".format(name), sep="\r")
+
+    return model
+
+
+def define_param_groups(model, weight_decay, optimizer_name):
+   def exclude_from_wd_and_adaptation(name):
+       if 'bn' in name:
+           return True
+       if optimizer_name == 'lars' and 'bias' in name:
+           return True
+
+   param_groups = [
+       {
+           'params': [p for name, p in model.named_parameters() if not exclude_from_wd_and_adaptation(name)],
+           'weight_decay': weight_decay,
+           'layer_adaptation': True,
+       },
+       {
+           'params': [p for name, p in model.named_parameters() if exclude_from_wd_and_adaptation(name)],
+           'weight_decay': 0.,
+           'layer_adaptation': False,
+       },
+   ]
+   return param_groups
+
+class Augment:
+   """
+   A stochastic data augmentation module
+   Transforms any given data example randomly
+   resulting in two correlated views of the same example,
+   denoted x ̃i and x ̃j, which we consider as a positive pair.
+   """
+
+   def __init__(self, img_size, s=1):
+       color_jitter = T.ColorJitter(
+           0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s
+       )
+       # 10% of the image
+       blur = T.GaussianBlur(1, (0.1, 2.0))
+
+       self.train_transform = torch.nn.Sequential(
+           T.RandomResizedCrop(size=img_size),
+           T.RandomHorizontalFlip(p=0.5),  # with 0.5 probability
+           T.RandomApply([color_jitter], p=0.8),
+           T.RandomApply([blur], p=0.5),
+           #T.RandomGrayscale(p=0.2),
+           # imagenet stats
+           #T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+       )
+
+   def __call__(self, x):
+       return self.train_transform(x), self.train_transform(x)
 
 def matfile_to_dic(folder_path):
     '''

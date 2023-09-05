@@ -15,7 +15,7 @@ def get_model(model_name, C_in, class_num, checkpoint=None, input_time_dim=65, i
 
     if model_name == 'avatar':
         return WAVATAR(C_in, class_num)
-    elif model_name == 'ast':
+    elif 'ast' in model_name:
         model = ASTModel(label_dim=class_num, input_tdim=input_time_dim, input_fdim=input_freq_dim,
                          imagenet_pretrain=False, audioset_pretrain=False)
         if checkpoint:
@@ -25,9 +25,6 @@ def get_model(model_name, C_in, class_num, checkpoint=None, input_time_dim=65, i
             for name, param in state_dict_temp.items():
                 if name in model_params:
                     model_params[name].copy_(param)
-                    print("copy {}".format(name), sep="\r")
-                else:
-                    print("skip {}".format(name), sep="\r")
             model.load_state_dict(state_dict_temp, strict=False)
 
             #state_dict = model.state_dict()

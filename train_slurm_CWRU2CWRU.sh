@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=DA_DFD_pretrain
+#SBATCH --job-name=DA_DFD_train
 #SBATCH --output=DA_DFD.txt
 #SBATCH --error=DA_DFD.log
 #SBATCH --mail-type=ALL
@@ -13,8 +13,9 @@ SRC="$1" # source domain
 TAR="$2" # target domain
 
 module load cuda11.1/toolkit/11.1.1
-srun python src/main.py --src_data="CWRU" --tar_data="CWRU" --src_domain=$SRC --tar_domain=$TAR --lr=0.005 \
-                        --batch_size=128 --epochs=200 --pretrained
+srun python src/main.py --src_data="CWRU" --tar_data="CWRU" --src_domain=$SRC --tar_domain=$TAR --lr=0.00005 \
+                        --batch_size=128 --epochs=200 --pretrained --use_domain_adv \
+                        #--use_contra_learn --accum_iter=5
 
 
 

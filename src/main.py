@@ -1,7 +1,8 @@
 # %%
 import torch.utils.data as Data
 from helper import (count_batch_on_large_dataset, weight_init, batch_norm_init, 
-                    get_params, compute_threthold, compute_weights)
+                    get_params, compute_threthold, compute_weights, define_param_groups,
+                    copy_domain_batch_norm)
 from validation import validate
 from dataloader import generate_dataset
 from train import train_batch
@@ -11,12 +12,13 @@ import os
 import wandb
 import argparse
 from construct_model import get_model
+from losses import ContrastiveLoss
 
 parser = argparse.ArgumentParser(description='DA_DFD', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--lr', type=float, default=0.0001, help='learning rate')
 parser.add_argument('--batch_size', type=int, default=48, help='batch size')
 parser.add_argument('--epochs', type=int, default=2, help='epochs')
-parser.add_argument('--weight_decay', type=float, default=1e-2, help='weight decay')
+parser.add_argument('--weight_decay', type=float, default=1e-4, help='weight decay')
 parser.add_argument('--momentum', type=float, default=1e-2, help='weight decay')
 parser.add_argument('--num_classes', type=int, default=4, help='number of classes')
 parser.add_argument('--device', type=str, default="cuda:0", help='cuda device')
@@ -30,7 +32,10 @@ parser.add_argument('--pretrained', action='store_true')
 parser.add_argument('--source_model_path', type=str, default="src_models", help='source model path')
 parser.add_argument('--warmup_epoch', type=int, default=1, help='warm up epoch size')
 parser.add_argument('--model', type=str, default="ast", help='model name')
-
+parser.add_argument('--accum_iter', type=int, default=1, help='accumulation of iteration to comptue gradient')
+parser.add_argument('--use_domain_bn', action='store_true')
+parser.add_argument('--use_domain_adv', action='store_true')
+parser.add_argument('--use_contra_learn', action='store_true')
 
 args = parser.parse_args()
 
@@ -55,6 +60,9 @@ def main(args):
         src_domain=args.src_domain,
         tar_domain=args.tar_domain,
         is_pretriained= True if args.pretrained else False,
+        use_domain_bn=True if args.use_domain_bn else False,
+        use_domain_adv=True if args.use_domain_adv else False,
+        use_contra_learn=True if args.use_contra_learn else False
     )
     wandb.init(config=hyperparameter_defaults, name=log, project="DA_DFD")
     wandb.define_metric("src_acc", summary="max")
@@ -78,18 +86,34 @@ def main(args):
                       class_num=args.num_classes, 
                       checkpoint='/data/home/jkataok1/DA_DFD/src_models/SimCLR.pth')
 
+    model_name = ""
 
     if args.pretrained:
         print("load pretrained model from {}".format(args.source_model_path))
-        src_model_name = f"src_{args.model}.pth"
-        model_name = f"adapted_{args.model}.pth"
-        model.load_state_dict(torch.load(os.path.join(args.source_model_path, "_".join([args.src_data, args.src_domain, args.tar_data, args.tar_domain, src_model_name]))))
-    else:
-        print("Pretraining model from scratch")
-        model_name = f"src_{args.model}.pth"
+        model.load_state_dict(torch.load(os.path.join(args.source_model_path, "_".join([args.src_data, args.src_domain, args.tar_data, args.tar_domain, args.model + ".pth"]))))
+        model_name += "da_"
+
+    
+    if args.use_domain_bn:
+        print("Using domain batch normalization")
+        model_name += "domain_bn_"
+    
+    if args.use_domain_adv:
+        print("Using domain adversarial")
+        model_name += "adv_"
+
+    if args.use_contra_learn:
+        print("Using contrastive learning")
+        model_name += "contra_"
+
+    model_name += f"{args.model}.pth"
+
+    # Define model name
+
 
     model = model.to(args.device)
     # define optimizer 
+    params = model.parameters()
     #params_enc = get_params(model, ["net", "fc"])
     #params_cls = get_params(model, ["classifier"])
     #optimizer_dict = {
@@ -101,7 +125,11 @@ def main(args):
     #                            lr=args.lr,
     #                            momentum=args.momentum,
     #                            weight_decay=args.weight_decay)}
-    optimizer = torch.optim.SGD(model.parameters(),
+    #optimizer = torch.optim.SGD(params,
+    #                            lr=args.lr,
+    #                            momentum=args.momentum,
+    #                            weight_decay=args.weight_decay)
+    optimizer = torch.optim.SGD(params,
                                 lr=args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
@@ -114,38 +142,17 @@ def main(args):
     count_itern_each_epoch = 0
     best_acc = 0.0
     criterion = torch.nn.NLLLoss()
+    criterion_contra = ContrastiveLoss(args.batch_size, temperature=0.5)
 
     for itern in range(num_itern_total):
         src_train_batch = enumerate(src_train_dataloader)
         tar_train_batch = enumerate(tar_train_dataloader)
-        print("itern: {}".format(itern), sep="\r")
 
         if (itern==0 or count_itern_each_epoch==batch_count):
 
             # Validate and compute source and target domain accuracy, and cluster center
-            val_dict = validate(model, src_val_dataloader, tar_val_dataloader, args.num_classes, wandb)
+            val_dict = validate(model, src_val_dataloader, tar_val_dataloader, args)
 
-            # Comptue target cluster center
-            
-            #val_dict["tar_center"], val_dict["tar_label_kmeans"], val_dict["tar_acc_cluster"] = kernel_k_means_wrapper(val_dict["tar_feature"], 
-            #                                                       val_dict["tar_label_ps"], 
-            #                                                       val_dict["tar_label"], 
-            #                                                       epoch, args, best_prec=1e-4)
-
-            #val_dict["tar_weights"] = compute_weights(val_dict["tar_feature"], 
-            #                              val_dict["tar_label_ps"], 
-            #                              val_dict["tar_center"])
-
-            #val_dict["src_weights"]= compute_weights(val_dict["src_feature"], 
-            #                              val_dict["src_label"], 
-            #                              val_dict["src_center"])
-
-            #val_dict["tar_label_ps_ord"] = val_dict["tar_label_kmeans"][val_dict["tar_index"]]
-
-            #val_dict["th"] = compute_threthold(val_dict["tar_weights"], 
-            #                                   val_dict["tar_label_ps"], 
-            #                                   args.num_classes)
-            
             wandb.log({"src_acc": val_dict["src_acc"], 
                        "tar_acc": val_dict["tar_acc"], 
                        "epoch": epoch})
@@ -162,20 +169,21 @@ def main(args):
                 if args.pretrained:
                     torch.save(model.state_dict(), os.path.join(log, model_name))
                 else:
-                    torch.save(model.state_dict(), os.path.join(args.source_model_path, "_".join([args.src_data,args.src_domain, args.tar_data, args.tar_domain, model_name])))
+                    torch.save(model.state_dict(), os.path.join(args.source_model_path, "_".join([args.src_data,args.src_domain, args.tar_data, args.tar_domain, args.model + ".pth"])))
                     
-            if not args.pretrained:
-                model.load_state_dict(torch.load(os.path.join(args.source_model_path, "_".join([args.src_data,args.src_domain, args.tar_data, args.tar_domain, model_name]))))
-
             if itern != 0:
                 count_itern_each_epoch = 0
                 epoch += 1
+        
+        is_backprop = count_itern_each_epoch % args.accum_iter == 0
 
         train_batch(model=model, src_train_batch=src_train_batch, tar_train_batch=tar_train_batch, 
                             src_train_dataloader=src_train_dataloader, tar_train_dataloader=tar_train_dataloader, 
-                            optimizer=optimizer, criterion=criterion, cur_epoch=epoch, logger=wandb, val_dict=val_dict, args=args)
+                            optimizer=optimizer, criterion=criterion, criterion_contra=criterion_contra, cur_epoch=epoch, 
+                            logger=wandb, args=args, backprop=is_backprop)
 
         count_itern_each_epoch += 1
 
 if __name__ == "__main__":
     main(args)
+# %%

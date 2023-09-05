@@ -13,6 +13,22 @@ import wget
 os.environ['TORCH_HOME'] = '/data/home/jkataok1/DA_DFD/pretrained_models'
 import timm
 from timm.models.layers import to_2tuple,trunc_normal_
+from torch.autograd import Function
+
+
+class ReverseLayerF(Function):
+
+    @staticmethod
+    def forward(ctx, x, alpha):
+        ctx.alpha = alpha
+
+        return x.view_as(x)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        output = grad_output.neg() * ctx.alpha
+
+        return output, None
 
 # override the timm package to relax the input shape constraint.
 class PatchEmbed(nn.Module):
@@ -44,7 +60,7 @@ class ASTModel(nn.Module):
     :param audioset_pretrain: if use full AudioSet and ImageNet pretrained model
     :param model_size: the model size of AST, should be in [tiny224, small224, base224, base384], base224 and base 384 are same model, but are trained differently during ImageNet pretraining.
     """
-    def __init__(self, label_dim=527, fstride=10, tstride=10, input_fdim=128, input_tdim=1024, imagenet_pretrain=True, audioset_pretrain=False, model_size='base384', verbose=True):
+    def __init__(self, label_dim=527, fstride=10, tstride=10, input_fdim=128, input_tdim=1024, projection_dim=2048, imagenet_pretrain=True, audioset_pretrain=False, model_size='base384', verbose=True):
 
         super(ASTModel, self).__init__()
         assert timm.__version__ == '0.4.5', 'Please use timm == 0.4.5, the code might not be compatible with newer versions.'
@@ -54,7 +70,7 @@ class ASTModel(nn.Module):
             print('ImageNet pretraining: {:s}, AudioSet pretraining: {:s}'.format(str(imagenet_pretrain),str(audioset_pretrain)))
         # override timm input shape restriction
         timm.models.vision_transformer.PatchEmbed = PatchEmbed
-
+        self.projection_dim = projection_dim
         # if AudioSet pretraining is not used (but ImageNet pretraining may still apply)
         if audioset_pretrain == False:
             if model_size == 'tiny224':
@@ -70,7 +86,7 @@ class ASTModel(nn.Module):
             self.original_num_patches = self.v.patch_embed.num_patches
             self.oringal_hw = int(self.original_num_patches ** 0.5)
             self.original_embedding_dim = self.v.pos_embed.shape[2]
-            self.mlp_head = nn.Sequential(nn.LayerNorm(self.original_embedding_dim), nn.Linear(self.original_embedding_dim, label_dim))
+
 
             # automatcially get the intermediate shape
             f_dim, t_dim = self.get_shape(fstride, tstride, input_fdim, input_tdim)
@@ -129,7 +145,6 @@ class ASTModel(nn.Module):
             audio_model.load_state_dict(sd, strict=False)
             self.v = audio_model.module.v
             self.original_embedding_dim = self.v.pos_embed.shape[2]
-            self.mlp_head = nn.Sequential(nn.LayerNorm(self.original_embedding_dim), nn.Linear(self.original_embedding_dim, label_dim))
 
             f_dim, t_dim = self.get_shape(fstride, tstride, input_fdim, input_tdim)
             num_patches = f_dim * t_dim
@@ -153,6 +168,14 @@ class ASTModel(nn.Module):
             new_pos_embed = new_pos_embed.reshape(1, 768, num_patches).transpose(1, 2)
             self.v.pos_embed = nn.Parameter(torch.cat([self.v.pos_embed[:, :2, :].detach(), new_pos_embed], dim=1))
 
+
+        # Define the rest of the model
+        self.projection = nn.Linear(in_features=self.original_embedding_dim, out_features=self.projection_dim)
+        self.batch_norm_src = nn.BatchNorm1d(self.projection_dim)
+        self.batch_norm_tar = nn.BatchNorm1d(self.projection_dim)
+        self.mlp_head = nn.Linear(self.projection_dim, label_dim)
+        self.mlp_dis = nn.Linear(self.projection_dim, 2)
+
     def get_shape(self, fstride, tstride, input_fdim=128, input_tdim=1024):
         test_input = torch.randn(1, 1, input_fdim, input_tdim)
         test_proj = nn.Conv2d(1, self.original_embedding_dim, kernel_size=(16, 16), stride=(fstride, tstride))
@@ -162,7 +185,7 @@ class ASTModel(nn.Module):
         return f_dim, t_dim
 
     @autocast()
-    def forward(self, x):
+    def forward(self, x, alpha, is_source=True):
         """
         :param x: the input spectrogram, expected shape: (batch_size, time_frame_num, frequency_bins), e.g., (12, 1024, 128)
         :return: prediction
@@ -182,9 +205,17 @@ class ASTModel(nn.Module):
             x = blk(x)
         x = self.v.norm(x)
         x = (x[:, 0] + x[:, 1]) / 2
+        x = self.projection(x)
 
-        x = self.mlp_head(x)
-        return x
+        if is_source:
+            x = self.batch_norm_src(x)
+        else:
+            x = self.batch_norm_tar(x)
+
+        x_cls = self.mlp_head(x)
+        x_rev = ReverseLayerF.apply(x, alpha)
+        x_dis = self.mlp_dis(x_rev)
+        return x_cls, x_dis, x
 
 if __name__ == '__main__':
     input_tdim = 100

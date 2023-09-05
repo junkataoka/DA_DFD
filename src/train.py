@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from torch.nn.init import xavier_uniform_
-from helper import adjust_learning_rate
+from helper import adjust_learning_rate, Augment
 from losses import srcClassifyLoss, tarClassifyLoss, adversarialLoss
 import math
 from torch.nn import functional as F
@@ -28,7 +28,7 @@ def batch_norm_init(m):
 
 def train_batch(model, src_train_batch, tar_train_batch, 
                         src_train_dataloader, tar_train_dataloader, 
-                        optimizer, criterion, cur_epoch, logger, val_dict, args):
+                        optimizer, criterion, criterion_contra, cur_epoch, logger, args, backprop):
 
     try:
         (src_idx, src_input, src_target) = src_train_batch.__next__()[1]
@@ -47,88 +47,73 @@ def train_batch(model, src_train_batch, tar_train_batch,
     tar_input = tar_input.float().cuda()
     tar_target = tar_target.long().cuda()
 
-    # penalty parameter
-    #lam = 2 / (1 + math.exp(-1 * 10 * cur_epoch / epochs)) - 1 
-    loss_dict = {}
-    p = float(cur_epoch) / 20
-    alpha = 2. / (1. + np.exp(-10 * p)) - 1
+    augmentation = Augment(img_size=(src_input.shape[-2], src_input.shape[-1]))
 
+    # penalty parameter
+    p = float(cur_epoch) / args.epochs
+    alpha = torch.tensor([2. / (1. + np.exp(-10 * p)) - 1]).cuda()
     adjust_learning_rate(optimizer, args.lr, cur_epoch, args.epochs) # adjust learning rate
     model.train()
-    optimizer.zero_grad()
 
-    src_class = model(src_input)
-    #tar_class = model(tar_input)
+    # Source domain
+    src_dis_label = torch.ones(src_input.shape[0]).long().cuda()
+    src_input_a, src_input_b = augmentation(src_input.unsqueeze(1))
+    _, _, src_feat_a = model(src_input_a.squeeze(1), alpha, True)
+    _, _, src_feat_b = model(src_input_b.squeeze(1), alpha, True)
+    src_class, src_dis, _ = model(src_input, alpha, True)
+
     nll_src_class = F.log_softmax(src_class, dim=1)
-    #nll_tar_class = F.log_softmax(tar_class, dim=1)
-    loss_src = criterion(nll_src_class, src_target.reshape(-1))
+    nll_src_dis = F.log_softmax(src_dis, dim=1)
+
+    loss_src_cls = criterion(nll_src_class, src_target.reshape(-1))
+    loss_src_contra = criterion_contra(src_feat_a, src_feat_b)
+    loss_src_dis = criterion(nll_src_dis, src_dis_label)
+
+    # Target domain
+    tar_dis_label = torch.zeros(tar_input.shape[0]).long().cuda()
+    tar_input_a, tar_input_b = augmentation(tar_input.unsqueeze(1))
+    _, _, tar_feat_a = model(tar_input_a.squeeze(1), alpha, args.use_domain_bn is False)
+    _, _, tar_feat_b = model(tar_input_b.squeeze(1), alpha, args.use_domain_bn is False)
+    tar_class, tar_dis, _ = model(tar_input, alpha, args.use_domain_bn is False)
+
+    nll_tar_class = F.log_softmax(tar_class, dim=1)
+    nll_tar_dis = F.log_softmax(tar_dis, dim=1)
+
+    loss_tar_cls = criterion(nll_tar_class, tar_target.reshape(-1))
+    loss_tar_contra = criterion_contra(tar_feat_a, tar_feat_b)
+    loss_tar_dis = criterion(nll_tar_dis, tar_dis_label)
 
 
-    # loss_dict["src_loss_domain"] = adversarialLoss(args=args, epoch=cur_epoch, prob_p_dis=src_domain_prob, 
-    #                                                 index=src_idx, weights_ord=val_dict["src_weights"], 
-    #                                                 src=True, is_encoder=True)
+    loss_dis = (loss_src_dis + loss_tar_dis) / 2
 
-    #assert math.isnan(loss_dict["src_loss_domain"]) == False
+    loss_cls = loss_src_cls
 
-    #loss_dict["tar_loss_domain"] = adversarialLoss(args=args, epoch=cur_epoch, prob_p_dis=tar_domain_prob, 
-    #                                                index=tar_idx, weights_ord=val_dict["tar_weights"], 
-    #                                                src=False, is_encoder=True)
+    loss = loss_cls
 
-    #assert math.isnan(loss_dict["tar_loss_domain"]) == False
+    loss_contra = (loss_src_contra + loss_tar_contra) / 2
 
-    #loss_dict["src_loss_class"] = srcClassifyLoss(src_class_prob, src_target, 
-    #                                              index=src_idx, weights_ord=val_dict["src_weights"])
+    #loss = (loss_dis + loss_cls + loss_contra) / args.accum_iter
+    if args.use_domain_adv:
+        loss += loss_dis
 
-    #assert math.isnan(loss_dict["src_loss_class"]) == False
+    if args.use_contra_learn:
+        loss += loss_contra
 
-    #loss_dict["tar_loss_class"] = tarClassifyLoss(args=args, epoch=cur_epoch, tar_cls_p=tar_class_prob, 
-    #                                              target_ps_ord=val_dict["tar_label_kmeans"], 
-    #                                              index=tar_idx, weights_ord=val_dict["tar_weights"],
-    #                                              th=val_dict["th"])
-    #assert math.isnan(loss_dict["tar_loss_class"]) == False
+    loss /= (args.accum_iter)
 
+    loss.backward()
 
-    #loss_dict["encoder_loss"]= alpha * (0.5 * (loss_dict["src_loss_domain"] + loss_dict["tar_loss_domain"]) + \
-    #                                        loss_dict["src_loss_class"] + loss_dict["tar_loss_class"])
-    
-    #loss_dict["encoder_loss"].backward()
-    loss_src.backward()
-    optimizer.step()
-    #optimizer_dict["encoder"].step()
-    
-    logger.log({"src_loss": loss_dict})
-
-    #optimizer_dict["classifier"].zero_grad()
-    #src_class_prob, src_domain_prob, _ = model(src_input)
-    #tar_class_prob, tar_domain_prob, _ = model(tar_input)
-    #loss_dict["src_loss_domain"] = adversarialLoss(args=args, epoch=cur_epoch, prob_p_dis=src_domain_prob, 
-    #                                                index=src_idx, weights_ord=val_dict["src_weights"], 
-    #                                                src=True, is_encoder=False)
-
-    ##assert math.isnan(loss_dict["src_loss_domain"]) == False
-
-    #loss_dict["tar_loss_domain"] = adversarialLoss(args=args, epoch=cur_epoch, prob_p_dis=tar_domain_prob, 
-    #                                                index=tar_idx, weights_ord=val_dict["tar_weights"], 
-    #                                                src=False, is_encoder=True)
-
-    ##assert math.isnan(loss_dict["tar_loss_domain"]) == False
-
-    #loss_dict["src_loss_class"] = srcClassifyLoss(src_class_prob, src_target, 
-    #                                              index=src_idx, weights_ord=val_dict["src_weights"])
-
-    ##assert math.isnan(loss_dict["src_loss_class"]) == False
-
-    #loss_dict["tar_loss_class"] = tarClassifyLoss(args=args, epoch=cur_epoch, tar_cls_p=tar_class_prob, 
-    #                                              target_ps_ord=val_dict["tar_label_kmeans"], 
-    #                                              index=tar_idx, weights_ord=val_dict["tar_weights"],
-    #                                              th=val_dict["th"])
-
-    ##assert torch.isnan(loss_dict["tar_loss_class"]) == False
-
-    #loss_dict["classifier_loss"]= alpha * (0.5 * (loss_dict["src_loss_domain"] + loss_dict["tar_loss_domain"]) + \
-    #                                    loss_dict["src_loss_class"] + loss_dict["tar_loss_class"])
-
-    #loss_dict["classifier_loss"].backward()
-    #optimizer_dict["classifier"].step()
-    #loss_dict["epoch"] = cur_epoch
-    #logger.log(loss_dict)
+    if backprop:
+        optimizer.step()
+        optimizer.zero_grad()
+        
+        logger.log({"loss_dis": loss_dis,
+                    "loss_src_dis": loss_src_dis,
+                    "loss_tar_dis": loss_tar_dis,
+                    "loss_cls": loss_cls,
+                    "loss_src_cls": loss_src_cls,
+                    "loss_tar_cls": loss_tar_cls,
+                    "loss_contra": loss_contra,
+                    "loss_src_contra": loss_src_contra,
+                    "loss_tar_contra": loss_tar_contra,
+                    "loss": loss})
