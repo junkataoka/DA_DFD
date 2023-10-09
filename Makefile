@@ -61,6 +61,26 @@ test: loadmodule
 # PROJECT RULES                                                                 #
 #################################################################################
 ## Pretrain
+.PHONY: pretrain_gearbox2gearbox
+pretrain_gearbox2gearbox: loadmodule
+	#sbatch pretrain_slurm_gearbox2gearbox.sh 0_spectrogram 1_spectrogram; \
+	sbatch pretrain_slurm_gearbox2gearbox.sh 1_spectrogram 0_spectrogram; \
+
+.PHONY: pretrain_PU2PU
+pretrain_PU2PU: loadmodule
+	sbatch pretrain_slurm_PU2PU.sh 0_spectrogram 1_spectrogram; \
+	sbatch pretrain_slurm_PU2PU.sh 0_spectrogram 2_spectrogram; \
+	sbatch pretrain_slurm_PU2PU.sh 0_spectrogram 3_spectrogram; \
+	sbatch pretrain_slurm_PU2PU.sh 1_spectrogram 0_spectrogram; \
+	sbatch pretrain_slurm_PU2PU.sh 1_spectrogram 2_spectrogram; \
+	sbatch pretrain_slurm_PU2PU.sh 1_spectrogram 3_spectrogram; \
+	sbatch pretrain_slurm_PU2PU.sh 2_spectrogram 0_spectrogram; \
+	sbatch pretrain_slurm_PU2PU.sh 2_spectrogram 1_spectrogram; \
+	sbatch pretrain_slurm_PU2PU.sh 2_spectrogram 3_spectrogram; \
+	sbatch pretrain_slurm_PU2PU.sh 3_spectrogram 0_spectrogram; \
+	sbatch pretrain_slurm_PU2PU.sh 3_spectrogram 1_spectrogram; \
+	sbatch pretrain_slurm_PU2PU.sh 3_spectrogram 2_spectrogram; \
+
 .PHONY: pretrain_CWRU2CWRU
 pretrain_CWRU2CWRU: loadmodule
 	sbatch pretrain_slurm_CWRU2CWRU.sh 1_spectrogram 0_spectrogram; \

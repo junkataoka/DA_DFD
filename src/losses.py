@@ -3,6 +3,13 @@ import math
 import torch
 from torch import nn
 
+def entropyMaxLoss(tar_cls_p):
+    prob_q2 = tar_cls_p / tar_cls_p.sum(0, keepdim=True).pow(0.5)
+    prob_q2 /= prob_q2.sum(1, keepdim=True)
+    loss = - (prob_q2 * tar_cls_p.log()).sum(1).mean()
+    return loss
+    
+
 def adversarialLoss(args, epoch, prob_p_dis, index, weights_ord, src=True, is_encoder=True):
 
     if not args.pretrained:
@@ -28,6 +35,7 @@ def adversarialLoss(args, epoch, prob_p_dis, index, weights_ord, src=True, is_en
 
 
     return loss_d
+
 
 def tarClassifyLoss(args, epoch, tar_cls_p, target_ps_ord, index, weights_ord, th):
 
@@ -116,3 +124,38 @@ class ContrastiveLoss(nn.Module):
        all_losses = -torch.log(nominator / torch.sum(denominator, dim=1))
        loss = torch.sum(all_losses) / (2 * self.batch_size)
        return loss
+   
+
+class RBF(nn.Module):
+
+    def __init__(self, n_kernels=5, mul_factor=2.0, bandwidth=None):
+        super().__init__()
+        self.bandwidth_multipliers = mul_factor ** (torch.arange(n_kernels) - n_kernels // 2)
+        self.bandwidth = bandwidth
+
+    def get_bandwidth(self, L2_distances):
+        if self.bandwidth is None:
+            n_samples = L2_distances.shape[0]
+            return L2_distances.data.sum() / (n_samples ** 2 - n_samples)
+
+        return self.bandwidth
+
+    def forward(self, X):
+        L2_distances = torch.cdist(X, X) ** 2
+        return torch.exp(-L2_distances[None, ...] / (self.get_bandwidth(L2_distances) * self.bandwidth_multipliers)[:, None, None]).sum(dim=0)
+
+
+class MMDLoss(nn.Module):
+
+    def __init__(self, kernel=RBF()):
+        super().__init__()
+        self.kernel = kernel
+
+    def forward(self, X, Y):
+        K = self.kernel(torch.vstack([X, Y]))
+
+        X_size = X.shape[0]
+        XX = K[:X_size, :X_size].mean()
+        XY = K[:X_size, X_size:].mean()
+        YY = K[X_size:, X_size:].mean()
+        return XX - 2 * XY + YY

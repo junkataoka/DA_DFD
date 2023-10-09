@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from scipy.interpolate import CubicSpline
 from scipy.signal import spectrogram
+import os
 
 def create_dataset_cwru(datapath_list, segment_length=2048, normalize=True):
     res = []
@@ -103,7 +104,58 @@ def prepare_ims(segment_length=20480, fs=20480, nperseg=600):
     np.savez(save_path, x=X, y=y)
     np.savez(save_path.replace(".npz", "_spectrogram.npz"), x=res_x_norm, y=y)
 
+def prepare_gearbox(datapath, segment_length=2048, nperseg=256):
+    dataset_files = glob.glob(os.path.join(datapath, "*.csv"))
+
+
+
+def format_gearbox(file_name, segment_length, nperseg):
+    X = []
+    y = []
+
+    if "20_0" in file_name:
+        domain = 0 
+        frequency = 20
+        sep = ","
+
+    elif "30_2" in file_name:
+        domain = 1
+        frequency = 30
+        sep = "\t"
     
+    df = pd.read_csv(file_name, skiprows=16, header=None, usecols=range(8), sep=sep)
+    cols = ["ch1", "ch2", "ch3", "ch4", "ch5", "ch6", "ch7", "ch8"]
+    df.columns = cols
+
+    if "ball" in file_name:
+        df["label"] = 0
+
+    elif "comb" in file_name:
+        df["label"] = 1
+
+    elif "inner" in file_name:
+        df["label"] = 2
+
+    elif "outer" in file_name:
+        df["label"] = 3
+
+    elif "health" in file_name:
+        df["label"] = 4
+
+    N = df.shape[0]
+    val = df[cols].values
+    splitted_val = np.stack(np.array_split(val[:int(N//segment_length * segment_length)], N//segment_length))
+    for i in range(splitted_val.shape[0]):
+        for j in range(splitted_val.shape[2]):
+            f, t, Sxx = spectrogram(splitted_val[i, :, j], fs=frequency, nperseg=nperseg)
+            X.append(Sxx)
+            y.append(df['label'][0])
+
+    X = np.stack(X)
+    y = np.stack(y)
+
+    return X, y
+
    
 def format_data_ims(file_name, fault_pattern, segment_length=2048):
 

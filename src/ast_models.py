@@ -60,7 +60,7 @@ class ASTModel(nn.Module):
     :param audioset_pretrain: if use full AudioSet and ImageNet pretrained model
     :param model_size: the model size of AST, should be in [tiny224, small224, base224, base384], base224 and base 384 are same model, but are trained differently during ImageNet pretraining.
     """
-    def __init__(self, label_dim=527, fstride=10, tstride=10, input_fdim=128, input_tdim=1024, projection_dim=2048, imagenet_pretrain=True, audioset_pretrain=False, model_size='base384', verbose=True):
+    def __init__(self, label_dim=527, fstride=10, tstride=10, input_fdim=128, input_tdim=1024, projection_dim=2048, imagenet_pretrain=True, audioset_pretrain=False, model_size='base384', verbose=True, C_in=1):
 
         super(ASTModel, self).__init__()
         assert timm.__version__ == '0.4.5', 'Please use timm == 0.4.5, the code might not be compatible with newer versions.'
@@ -89,7 +89,7 @@ class ASTModel(nn.Module):
 
 
             # automatcially get the intermediate shape
-            f_dim, t_dim = self.get_shape(fstride, tstride, input_fdim, input_tdim)
+            f_dim, t_dim = self.get_shape(fstride, tstride, input_fdim, input_tdim, C_in)
             num_patches = f_dim * t_dim
             self.v.patch_embed.num_patches = num_patches
             if verbose == True:
@@ -97,7 +97,7 @@ class ASTModel(nn.Module):
                 print('number of patches={:d}'.format(num_patches))
 
             # the linear projection layer
-            new_proj = torch.nn.Conv2d(1, self.original_embedding_dim, kernel_size=(16, 16), stride=(fstride, tstride))
+            new_proj = torch.nn.Conv2d(C_in, self.original_embedding_dim, kernel_size=(16, 16), stride=(fstride, tstride))
             if imagenet_pretrain == True:
                 new_proj.weight = torch.nn.Parameter(torch.sum(self.v.patch_embed.proj.weight, dim=1).unsqueeze(1))
                 new_proj.bias = self.v.patch_embed.proj.bias
@@ -140,13 +140,13 @@ class ASTModel(nn.Module):
                 audioset_mdl_url = 'https://www.dropbox.com/s/cv4knew8mvbrnvq/audioset_0.4593.pth?dl=1'
                 wget.download(audioset_mdl_url, out='../../pretrained_models/audioset_10_10_0.4593.pth')
             sd = torch.load('../../pretrained_models/audioset_10_10_0.4593.pth', map_location=device)
-            audio_model = ASTModel(label_dim=527, fstride=10, tstride=10, input_fdim=128, input_tdim=1024, imagenet_pretrain=False, audioset_pretrain=False, model_size='base384', verbose=False)
+            audio_model = ASTModel(label_dim=527, fstride=10, tstride=10, input_fdim=128, input_tdim=1024, imagenet_pretrain=False, audioset_pretrain=False, model_size='base384', verbose=False, C_in=C_in)
             audio_model = torch.nn.DataParallel(audio_model)
             audio_model.load_state_dict(sd, strict=False)
             self.v = audio_model.module.v
             self.original_embedding_dim = self.v.pos_embed.shape[2]
 
-            f_dim, t_dim = self.get_shape(fstride, tstride, input_fdim, input_tdim)
+            f_dim, t_dim = self.get_shape(fstride, tstride, input_fdim, input_tdim, C_in)
             num_patches = f_dim * t_dim
             self.v.patch_embed.num_patches = num_patches
             if verbose == True:
@@ -176,9 +176,9 @@ class ASTModel(nn.Module):
         self.mlp_head = nn.Linear(self.projection_dim, label_dim)
         self.mlp_dis = nn.Linear(self.projection_dim, 2)
 
-    def get_shape(self, fstride, tstride, input_fdim=128, input_tdim=1024):
-        test_input = torch.randn(1, 1, input_fdim, input_tdim)
-        test_proj = nn.Conv2d(1, self.original_embedding_dim, kernel_size=(16, 16), stride=(fstride, tstride))
+    def get_shape(self, fstride, tstride, input_fdim=128, input_tdim=1024, C_in=1):
+        test_input = torch.randn(1, C_in, input_fdim, input_tdim)
+        test_proj = nn.Conv2d(C_in, self.original_embedding_dim, kernel_size=(16, 16), stride=(fstride, tstride))
         test_out = test_proj(test_input)
         f_dim = test_out.shape[2]
         t_dim = test_out.shape[3]
@@ -190,9 +190,9 @@ class ASTModel(nn.Module):
         :param x: the input spectrogram, expected shape: (batch_size, time_frame_num, frequency_bins), e.g., (12, 1024, 128)
         :return: prediction
         """
-        # expect input x = (batch_size, time_frame_num, frequency_bins), e.g., (12, 1024, 128)
-        x = x.unsqueeze(1)
-        x = x.transpose(2, 3)
+        # expect input x = (batch_size, channel_size, time_frame_num, frequency_bins), e.g., (12, 1024, 128)
+        #x = x.unsqueeze(1)
+        #x = x.transpose(2, 3)
 
         B = x.shape[0]
         x = self.v.patch_embed(x)

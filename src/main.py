@@ -33,8 +33,12 @@ parser.add_argument('--source_model_path', type=str, default="src_models", help=
 parser.add_argument('--warmup_epoch', type=int, default=1, help='warm up epoch size')
 parser.add_argument('--model', type=str, default="ast", help='model name')
 parser.add_argument('--accum_iter', type=int, default=1, help='accumulation of iteration to comptue gradient')
+parser.add_argument('--input_channel', type=int, default=1, help='number of input channels')
+parser.add_argument('--input_time_dim', type=int, default=65, help='number of time dimension')
+parser.add_argument('--input_freq_dim', type=int, default=18, help='number of frequency dimension')
 parser.add_argument('--use_domain_bn', action='store_true')
 parser.add_argument('--use_domain_adv', action='store_true')
+parser.add_argument('--use_tar_entropy', action='store_true')
 parser.add_argument('--use_contra_learn', action='store_true')
 
 args = parser.parse_args()
@@ -82,9 +86,10 @@ def main(args):
                                         batch_size=args.batch_size, shuffle=True, drop_last=False) 
     
     # define model 
-    model = get_model(model_name=f"{args.model}", C_in=1, 
-                      class_num=args.num_classes, 
-                      checkpoint='/data/home/jkataok1/DA_DFD/src_models/SimCLR.pth')
+    model = get_model(model_name=f"{args.model}", C_in=args.input_channel, 
+                      class_num=args.num_classes,
+                      input_time_dim=args.input_time_dim,
+                      input_freq_dim=args.input_freq_dim)
 
     model_name = ""
 
