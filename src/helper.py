@@ -254,11 +254,16 @@ def adjust_learning_rate(optimizer, lr, cur_epoch, epochs):
 
 def get_params(model, param_name):
     params = list()
+    params_else = list()
+
     for p in param_name:
         for k, v in model.named_parameters():
             if p in k:
                 params += [{'params': v, 'name': p}]
-    return params
+            else:
+                params_else += [{'params': v, 'name': k}]
+
+    return params, params_else
 
 
 def compute_weights(features, targets, cen):

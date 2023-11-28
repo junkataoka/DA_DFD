@@ -66,7 +66,9 @@ def main(args):
         is_pretriained= True if args.pretrained else False,
         use_domain_bn=True if args.use_domain_bn else False,
         use_domain_adv=True if args.use_domain_adv else False,
-        use_contra_learn=True if args.use_contra_learn else False
+        use_contra_learn=True if args.use_contra_learn else False,
+        use_tar_entropy_loss=True if args.use_tar_entropy else False
+
     )
     wandb.init(config=hyperparameter_defaults, name=log, project="DA_DFD")
     wandb.define_metric("src_acc", summary="max")
@@ -119,25 +121,25 @@ def main(args):
     model = model.to(args.device)
     # define optimizer 
     params = model.parameters()
-    #params_enc = get_params(model, ["net", "fc"])
-    #params_cls = get_params(model, ["classifier"])
-    #optimizer_dict = {
-    #    "encoder": torch.optim.SGD(params_enc,
-    #                            lr=args.lr,
-    #                            momentum=args.momentum,
-    #                            weight_decay=args.weight_decay),
-    #    "classifier": torch.optim.SGD(params_cls,
-    #                            lr=args.lr,
-    #                            momentum=args.momentum,
-    #                            weight_decay=args.weight_decay)}
+    params_cls, params_enc = get_params(model, ["mlp_head"])
+    optimizer_dict = {
+        "encoder": torch.optim.SGD(params_enc,
+                                lr=args.lr,
+                                momentum=args.momentum,
+                                weight_decay=args.weight_decay),
+        "classifier": torch.optim.SGD(params_cls,
+                                lr=args.lr,
+                                momentum=args.momentum,
+                                weight_decay=args.weight_decay)}
+
     #optimizer = torch.optim.SGD(params,
     #                            lr=args.lr,
     #                            momentum=args.momentum,
     #                            weight_decay=args.weight_decay)
-    optimizer = torch.optim.SGD(params,
-                                lr=args.lr,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay)
+    #optimizer = torch.optim.SGD(params,
+    #                            lr=args.lr,
+    #                            momentum=args.momentum,
+    #                            weight_decay=args.weight_decay)
     # Count batch size
     batch_count = count_batch_on_large_dataset(src_train_dataloader, tar_train_dataloader)
     # count total iteration
@@ -147,7 +149,6 @@ def main(args):
     count_itern_each_epoch = 0
     best_acc = 0.0
     criterion = torch.nn.NLLLoss()
-    criterion_contra = ContrastiveLoss(args.batch_size, temperature=0.5)
 
     for itern in range(num_itern_total):
         src_train_batch = enumerate(src_train_dataloader)
@@ -184,7 +185,7 @@ def main(args):
 
         train_batch(model=model, src_train_batch=src_train_batch, tar_train_batch=tar_train_batch, 
                             src_train_dataloader=src_train_dataloader, tar_train_dataloader=tar_train_dataloader, 
-                            optimizer=optimizer, criterion=criterion, criterion_contra=criterion_contra, cur_epoch=epoch, 
+                            optimizers=optimizer_dict, criterion=criterion, cur_epoch=epoch, 
                             logger=wandb, args=args, backprop=is_backprop)
 
         count_itern_each_epoch += 1

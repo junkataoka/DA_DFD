@@ -2,11 +2,14 @@ import torch.nn.functional as F
 import math
 import torch
 from torch import nn
+from torch.nn import functional as F
 
-def entropyMaxLoss(tar_cls_p):
-    prob_q2 = tar_cls_p / tar_cls_p.sum(0, keepdim=True).pow(0.5)
-    prob_q2 /= prob_q2.sum(1, keepdim=True)
-    loss = - (prob_q2 * tar_cls_p.log()).sum(1).mean()
+def entropyMaxLoss(tar_cls):
+    tar_cls_p = F.softmax(tar_cls, dim=1)
+    prob_q2 = (tar_cls_p) / (tar_cls_p).sum(0, keepdim=True).pow(0.5)
+    prob_q2_norm = prob_q2 / (prob_q2.sum(1, keepdim=True))
+    loss = F.cross_entropy(tar_cls, prob_q2_norm)
+
     return loss
     
 

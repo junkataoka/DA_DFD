@@ -173,8 +173,8 @@ class ASTModel(nn.Module):
         self.projection = nn.Linear(in_features=self.original_embedding_dim, out_features=self.projection_dim)
         self.batch_norm_src = nn.BatchNorm1d(self.projection_dim)
         self.batch_norm_tar = nn.BatchNorm1d(self.projection_dim)
-        self.mlp_head = nn.Linear(self.projection_dim, label_dim)
-        self.mlp_dis = nn.Linear(self.projection_dim, 2)
+        self.mlp_head = nn.Linear(self.projection_dim, label_dim+2)
+        #self.mlp_dis = nn.Linear(self.projection_dim, 2)
 
     def get_shape(self, fstride, tstride, input_fdim=128, input_tdim=1024, C_in=1):
         test_input = torch.randn(1, C_in, input_fdim, input_tdim)
@@ -212,9 +212,11 @@ class ASTModel(nn.Module):
         else:
             x = self.batch_norm_tar(x)
 
-        x_cls = self.mlp_head(x)
-        x_rev = ReverseLayerF.apply(x, alpha)
-        x_dis = self.mlp_dis(x_rev)
+        x_out = self.mlp_head(x)
+        x_cls = x_out[:, :-2]
+        x_dis = x_cls[:, -2:]
+        #x_rev = ReverseLayerF.apply(x, alpha)
+        #x_dis = self.mlp_dis(x_rev)
         return x_cls, x_dis, x
 
 if __name__ == '__main__':

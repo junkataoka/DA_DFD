@@ -1,9 +1,53 @@
 wandb: Currently logged in as: kataoka0511 (junkataoka). Use `wandb login --relogin` to force relogin
-wandb: wandb version 0.15.12 is available!  To upgrade, please run:
+wandb: wandb version 0.16.0 is available!  To upgrade, please run:
 wandb:  $ pip install wandb --upgrade
 wandb: Tracking run with wandb version 0.15.3
-wandb: Run data is saved locally in /data/home/jkataok1/DA_DFD/wandb/run-20231009_142129-a3v0tcky
+wandb: Run data is saved locally in /data/home/jkataok1/DA_DFD/wandb/run-20231127_173120-yjldnyhj
 wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run log/gearbox0_spectrogramtogearbox1_spectrogram_lr0.0001_e200_b128
+wandb: Syncing run log/CWRU1_014_spectrogramtoCWRU0_014_spectrogram_lr0.0001_e200_b24
 wandb: ⭐️ View project at https://wandb.ai/junkataoka/DA_DFD
-wandb: 🚀 View run at https://wandb.ai/junkataoka/DA_DFD/runs/a3v0tcky
+wandb: 🚀 View run at https://wandb.ai/junkataoka/DA_DFD/runs/yjldnyhj
+wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
+wandb: 
+wandb: Run history:
+wandb: best_acc ▁
+wandb:    epoch ▁▁
+wandb:  src_acc ▁
+wandb:  tar_acc ▁
+wandb: 
+wandb: Run summary:
+wandb: best_acc 0.70088
+wandb:    epoch 0
+wandb: 
+wandb: 🚀 View run log/CWRU1_014_spectrogramtoCWRU0_014_spectrogram_lr0.0001_e200_b24 at: https://wandb.ai/junkataoka/DA_DFD/runs/yjldnyhj
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20231127_173120-yjldnyhj/logs
+Traceback (most recent call last):
+  File "src/main.py", line 194, in <module>
+    main(args)
+  File "src/main.py", line 189, in main
+    logger=wandb, args=args, backprop=is_backprop)
+  File "/data/home/jkataok1/DA_DFD/src/train.py", line 67, in train_batch
+    tar_class, tar_dis, _ = model(tar_input, alpha, True)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/torch/autocast_mode.py", line 198, in decorate_autocast
+    return func(*args, **kwargs)
+  File "/data/home/jkataok1/DA_DFD/src/ast_models.py", line 205, in forward
+    x = blk(x)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/timm/models/vision_transformer.py", line 199, in forward
+    x = x + self.drop_path(self.mlp(self.norm2(x)))
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/timm/models/vision_transformer.py", line 147, in forward
+    x = self.fc1(x)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/torch/nn/modules/linear.py", line 103, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/data/home/jkataok1/mlenv/lib/python3.7/site-packages/torch/nn/functional.py", line 1848, in linear
+    return torch._C._nn.linear(input, weight, bias)
+RuntimeError: CUDA out of memory. Tried to allocate 2.00 MiB (GPU 0; 11.91 GiB total capacity; 662.51 MiB already allocated; 3.62 MiB free; 680.00 MiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+srun: error: compute133: task 0: Exited with exit code 1

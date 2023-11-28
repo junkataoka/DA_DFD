@@ -18,8 +18,10 @@ def create_dataset_cwru(datapath_list, segment_length=2048, normalize=True):
     df_all, mean, std = get_df_all(df, segment_length, normalize)
     return df_all, mean, std
 
-def save_cwru(df, savepath, condition, segment_length, fs=1200, nperseg=128):
+def save_cwru(df, savepath, condition, segment_length, fs=1200, nperseg=128, diameter="014"):
     data = df[df["condition"].isin(condition)]
+    data = data[data["filename"].str.contains(diameter)]
+
     y = data["label"].to_numpy().reshape(-1, 1)
     x = data.loc[:, ~data.columns.isin(["filename", "label", "condition"])].to_numpy()
     res_x = []
@@ -27,7 +29,8 @@ def save_cwru(df, savepath, condition, segment_length, fs=1200, nperseg=128):
         f, t, Sxx = spectrogram(np.array(x[i]), fs=fs, nperseg=nperseg)
         res_x.append(Sxx)
     res_x = np.stack(res_x)
-    res_x_norm = (res_x - res_x.mean(axis=(0, 2), keepdims=True)) / (res_x.std(axis=(0, 2), keepdims=True)+1e-8)
+    res_x_norm = (res_x - res_x.mean(axis=(0, -2, -1), keepdims=True)) / (res_x.std(axis=(0, -2, -1), keepdims=True)+1e-8)
+    res_x_norm = np.expand_dims(res_x_norm, axis=1)
 
     x = StandardScaler().fit_transform(x.reshape(-1, 1))
     x = x.reshape(-1, 1, segment_length)
@@ -42,25 +45,26 @@ def generate_spectrogram(df, fs=1200, nperseg=20):
         f, t, Sxx = spectrogram(np.array(x), fs=fs, nperseg=nperseg)
         res_x.append(Sxx)
     res_x = np.stack(res_x)
-    res_x_norm = (res_x - res_x.mean(axis=(0, 2), keepdims=True)) / (res_x.std(axis=(0, 2), keepdims=True)+1e-8)
+    res_x_norm = (res_x - res_x.mean(axis=(0, -2, -1), keepdims=True)) / (res_x.std(axis=(0, -2, -1), keepdims=True)+1e-8)
     return res_x_norm
 
-def prepare_cwru(segment_length, normalize, fs, nperseg):
+def prepare_cwru(segment_length, normalize, fs, nperseg, diameter):
     datapath_de12 = "/data/home/jkataok1/DA_DFD/data/raw/CWRU/12k_DE"
     datapath_nor = "/data/home/jkataok1/DA_DFD/data/raw/CWRU/Normal"
     datapath_de48 = "/data/home/jkataok1/DA_DFD/data/raw/CWRU/48k_DE"
     datapath_fe12 = "/data/home/jkataok1/DA_DFD/data/raw/CWRU/12k_FE"
-    datapath_list = [datapath_de12, datapath_nor, datapath_fe12]
+    datapath_list = [datapath_de12, datapath_nor, datapath_fe12, datapath_de48]
+    #datapath_list = [c for c in datapath_list if diameter in c]
     df, mean, std = create_dataset_cwru(datapath_list, segment_length, normalize)
     data_path = df.iloc[:, 1]
     temp = data_path.tolist()
     condition = [int(temp[i].split('/')[-1].split('_')[-1].split(".")[0]) for i in range(len(temp))]
     df["condition"] = condition
-    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/0.npz", condition=[0], segment_length=segment_length, fs=fs, nperseg=nperseg)
-    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/1.npz", condition=[1], segment_length=segment_length, fs=fs, nperseg=nperseg)
-    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/2.npz", condition=[2],  segment_length=segment_length , fs=fs, nperseg=nperseg)
-    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/3.npz", condition=[3],  segment_length=segment_length, fs=fs, nperseg=nperseg)
-    save_cwru(df=df, savepath="/data/home/jkataok1/DA_DFD/data/processed/CWRU/all.npz", condition=[0, 1, 2, 3],  segment_length=segment_length, fs=fs, nperseg=nperseg)
+    save_cwru(df=df, savepath=f"/data/home/jkataok1/DA_DFD/data/processed/CWRU/0_{diameter}.npz", condition=[0], segment_length=segment_length, fs=fs, nperseg=nperseg, diameter=diameter)
+    save_cwru(df=df, savepath=f"/data/home/jkataok1/DA_DFD/data/processed/CWRU/1_{diameter}.npz", condition=[1], segment_length=segment_length, fs=fs, nperseg=nperseg, diameter=diameter)
+    save_cwru(df=df, savepath=f"/data/home/jkataok1/DA_DFD/data/processed/CWRU/2_{diameter}.npz", condition=[2],  segment_length=segment_length , fs=fs, nperseg=nperseg, diameter=diameter)
+    save_cwru(df=df, savepath=f"/data/home/jkataok1/DA_DFD/data/processed/CWRU/3_{diameter}.npz", condition=[3],  segment_length=segment_length, fs=fs, nperseg=nperseg, diameter=diameter)
+    save_cwru(df=df, savepath=f"/data/home/jkataok1/DA_DFD/data/processed/CWRU/all_{diameter}.npz", condition=[0, 1, 2, 3],  segment_length=segment_length, fs=fs, nperseg=nperseg, diameter=diameter)
     np.savez("/data/home/jkataok1/DA_DFD/data/processed/CWRU/mean_std.npz", x=np.array([mean, std]))
 
 def prepare_ims(segment_length=20480, fs=20480, nperseg=600):
@@ -169,8 +173,8 @@ def format_data_ims(file_name, fault_pattern, segment_length=2048):
     return splitted_val, np.repeat(label[fault_pattern], N//segment_length)
     
 def main():
-    prepare_cwru(2048, False, 2048, 128)
-    prepare_ims(2048, 2048, 128)
+    prepare_cwru(2048, False, 2048, 128, "014")
+    #prepare_ims(2048, 2048, 128)
 
 
 # %%
