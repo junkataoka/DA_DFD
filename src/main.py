@@ -123,14 +123,23 @@ def main(args):
     params = model.parameters()
     params_cls, params_enc = get_params(model, ["mlp_head"])
     optimizer_dict = {
-        "encoder": torch.optim.SGD(params_enc,
-                                lr=args.lr,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay),
-        "classifier": torch.optim.SGD(params_cls,
-                                lr=args.lr,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay)}
+        #"encoder": torch.optim.SGD(params_enc,
+        #                        lr=args.lr,
+        #                        momentum=args.momentum,
+        #                        weight_decay=args.weight_decay),
+        #"classifier": torch.optim.SGD(params_cls,
+        #                        lr=args.lr,
+        #                        momentum=args.momentum,
+        #                        weight_decay=args.weight_decay)}
+
+        "encoder": torch.optim.Adam(params_enc,
+                                lr=args.lr),
+                                #momentum=args.momentum,
+                                #weight_decay=args.weight_decay),
+        "classifier": torch.optim.Adam(params_cls,
+                                lr=args.lr)}
+                                #momentum=args.momentum,
+                                #weight_decay=args.weight_decay)}
 
     #optimizer = torch.optim.SGD(params,
     #                            lr=args.lr,
@@ -164,13 +173,13 @@ def main(args):
                        "epoch": epoch})
 
             if not args.pretrained:
-                acc_name = "tar_acc"
+                acc_name = "src_acc"
             else:
                 acc_name = "tar_acc"
 
-            if val_dict[acc_name] > best_acc:
+            if val_dict[acc_name] >= best_acc:
                 best_acc = val_dict[acc_name]
-                wandb.log({"best_acc": best_acc, "epoch": epoch})
+                wandb.log({f"best_{acc_name}": best_acc, "epoch": epoch})
 
                 if args.pretrained:
                     torch.save(model.state_dict(), os.path.join(log, model_name))
