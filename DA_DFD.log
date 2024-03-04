@@ -3,105 +3,17 @@ wandb: Currently logged in as: kataoka0511 (junkataoka). Use `wandb login --relo
 wandb: wandb version 0.16.3 is available!  To upgrade, please run:
 wandb:  $ pip install wandb --upgrade
 wandb: Tracking run with wandb version 0.15.3
-wandb: Run data is saved locally in /data/home/jkataok1/DA_DFD/wandb/run-20240303_202104-5p5vw6cx
+wandb: Run data is saved locally in /data/home/jkataok1/DA_DFD/wandb/run-20240303_230342-9wknzlom
 wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run log/CWRU_small0_alltoCWRU_small2_all_lr0.0001_e200_b128
+wandb: ⭐️ View project at https://wandb.ai/junkataoka/DA_DFD
+wandb: 🚀 View run at https://wandb.ai/junkataoka/DA_DFD/runs/9wknzlom
 wandb: wandb version 0.16.3 is available!  To upgrade, please run:
 wandb:  $ pip install wandb --upgrade
 wandb: Tracking run with wandb version 0.15.3
-wandb: Run data is saved locally in /data/home/jkataok1/DA_DFD/wandb/run-20240303_202104-u9cbyvlt
+wandb: Run data is saved locally in /data/home/jkataok1/DA_DFD/wandb/run-20240303_230342-yrn052s7
 wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run log/CWRU_small1_alltoCWRU_small3_all_lr0.0001_e200_b128
+wandb: Syncing run log/CWRU_small1_alltoCWRU_small2_all_lr0.0001_e200_b128
 wandb: ⭐️ View project at https://wandb.ai/junkataoka/DA_DFD
-wandb: 🚀 View run at https://wandb.ai/junkataoka/DA_DFD/runs/5p5vw6cx
-wandb: Syncing run log/CWRU_small2_alltoCWRU_small3_all_lr0.0001_e200_b128
-wandb: ⭐️ View project at https://wandb.ai/junkataoka/DA_DFD
-wandb: 🚀 View run at https://wandb.ai/junkataoka/DA_DFD/runs/u9cbyvlt
+wandb: 🚀 View run at https://wandb.ai/junkataoka/DA_DFD/runs/yrn052s7
 wandb: Waiting for W&B process to finish... (success).
-wandb: Waiting for W&B process to finish... (success).
-wandb: - 0.009 MB of 0.009 MB uploaded (0.000 MB deduped)wandb: 
-wandb: Run history:
-wandb: best_src_acc ▁▃▅▆▆▇██████████████████████████████████
-wandb:        epoch ▁▁▁▁▂▂▂▂▂▃▃▃▃▄▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▆▇▇▇▇▇▇███
-wandb:         loss █▇▆▄▄▃▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:     loss_dis ▁▁▂▃▄▄▅▅▅▅▅▆▅▆▆▅▆▇▆▇▇▇▇█▆▇▇▇▇▆▇▆▇▇▇█▇▇▇█
-wandb: loss_src_cls █▇▆▄▄▃▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:      src_acc ▁▃▅▆▇▇██████████████████████████████████
-wandb:      tar_acc ▁▆▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇█▇▇▇█▇█▇████▇██▇▇▇██▇██
-wandb: 
-wandb: Run summary:
-wandb: best_src_acc 1.0
-wandb:        epoch 198
-wandb:         loss 0.00246
-wandb:     loss_dis 0.73181
-wandb: loss_src_cls 0.00246
-wandb: loss_tar_ent nan
-wandb: 
-wandb: 🚀 View run log/CWRU_small3_alltoCWRU_small0_all_lr0.0001_e200_b128 at: https://wandb.ai/junkataoka/DA_DFD/runs/tnj487gm
-wandb: Synced 4 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20240303_202015-tnj487gm/logs
-wandb: - 0.004 MB of 0.009 MB uploaded (0.000 MB deduped)wandb: 
-wandb: Run history:
-wandb: best_src_acc ▁▁▂▄▄▅▆▆▇▇▇█████████████████████████████
-wandb:        epoch ▁▁▁▁▂▂▂▂▂▂▃▃▃▃▄▄▄▄▄▅▅▅▅▆▆▆▆▆▆▆▇▇▇▇▇▇████
-wandb:         loss █▇▅▄▄▃▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:     loss_dis ▂▂▂▂▂▁▂▂▃▃▃▃▄▄▄▃▅▅▄▅▄▄▅▆▅▅▆▅▇▅▇▅▅█▆▅▆▄▆▇
-wandb: loss_src_cls █▇▅▄▄▃▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:      src_acc ▁▁▄▅▆▇▇▇████████████████████████████████
-wandb:      tar_acc ▁▁▃▄▅▆▇█▇███████████████████████████████
-wandb: 
-wandb: Run summary:
-wandb: best_src_acc 1.0
-wandb:        epoch 198
-wandb:         loss 0.00322
-wandb:     loss_dis 0.71828
-wandb: loss_sr   loss 0.00279
-wandb:     loss_dis 0.71407
-wandb: loss_src_cls 0.00279
-wandb: loss_tar_ent nan
-wandb: 
-wandb: 🚀 View run log/CWRU_small3_alltoCWRU_small1_all_lr0.0001_e200_b128 at: https://wandb.ai/junkataoka/DA_DFD/runs/rh6nisc4
-wandb: Synced 4 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandbwandb: Waiting for W&B process to finish... (success).
-wandb: Waiting for W&B process to finish... (success).
-wandb: - 0.009 MB of 0.009 MB uploaded (0.000 MB deduped)wandb: 
-wandb: Run history:
-wandb: best_src_acc ▁▅▅▇▇███████████████████████████████████
-wandb:        epoch ▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▆▇▇▇▇▇▇███
-wandb:         loss ██▆▄▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:     loss_dis ▁▁▂▂▂▃▂▃▃▃▄▄▄▄▅▅▆▅▅▅▅▆▅▆▅▆▆▆▇▆▇▆▆▇▇▇▇▇██
-wandb: loss_src_cls ██▆▄▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:      src_acc ▁▄▅▆▇███████████████████████████████████
-wandb:      tar_acc ▁▄▅▆▇███████████████████████████████████
-wandb: 
-wandb: Run summary:
-wandb: best_src_acc 1.0
-wandb:        epoch 198
-wandb:         loss 0.00164
-wandb:     loss_dis 0.76421
-wandb: loss_src_cls 0.00164
-wandb: loss_tar_ent nan
-wandb: 
-wandb: 🚀 View run log/CWRU_small2_alltoCWRU_small3_all_lr0.0001_e200_b128 at: https://wandb.ai/junkataoka/DA_DFD/runs/u9cbyvlt
-wandb: Synced 4 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20240303_202104-u9cbyvlt/logs
-wandb: - 0.004 MB of 0.009 MB uploaded (0.000 MB deduped)wandb: 
-wandb: Run history:
-wandb: best_src_acc ▁▂▅▆▇▇██████████████████████████████████
-wandb:        epoch ▁▁▁▂▂▂▂▂▂▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▆▇▇▇▇▇▇███
-wandb:         loss █▇▅▄▃▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:     loss_dis ▁▁▂▃▂▂▃▂▂▃▅▄▃▃▆▅▅▄▄▅▆▇▃▄▇▆▇▅▇▄▄▃▇▆▆▇▆██▆
-wandb: loss_src_cls █▇▅▄▃▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:      src_acc ▁▂▅▆▇▇██████████████████████████████████
-wandb:      tar_acc ▁▂▅▆▇▇██████████████████████████████████
-wandb: 
-wandb: Run summary:
-wandb: best_src_acc 1.0
-wandb:        epoch 198
-wandb:         loss 0.00235
-wandb:     loss_dis 0.7097
-wandb: loss_src_cls 0.00235
-wandb: loss_tar_ent nan
-wandb: 
-wandb: 🚀 View run log/CWRU_small1_alltoCWRU_small3_all_lr0.0001_e200_b128 at: https://wandb.ai/junkataoka/DA_DFD/runs/5p5vw6cx
-wandb: Synced 4 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20240303_202104-5p5vw6cx/logs
