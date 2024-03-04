@@ -121,30 +121,30 @@ def main(args):
     model = model.to(args.device)
     # define optimizer 
     params = model.parameters()
-    params_cls, params_enc = get_params(model, ["mlp_head"])
-    optimizer_dict = {
-        #"encoder": torch.optim.SGD(params_enc,
-        #                        lr=args.lr,
-        #                        momentum=args.momentum,
-        #                        weight_decay=args.weight_decay),
-        #"classifier": torch.optim.SGD(params_cls,
-        #                        lr=args.lr,
-        #                        momentum=args.momentum,
-        #                        weight_decay=args.weight_decay)}
+    #params_cls, params_enc = get_params(model, ["mlp_head"])
+    #optimizer_dict = {
+    #    #"encoder": torch.optim.SGD(params_enc,
+    #    #                        lr=args.lr,
+    #    #                        momentum=args.momentum,
+    #    #                        weight_decay=args.weight_decay),
+    #    #"classifier": torch.optim.SGD(params_cls,
+    #    #                        lr=args.lr,
+    #    #                        momentum=args.momentum,
+    #    #                        weight_decay=args.weight_decay)}
 
-        "encoder": torch.optim.Adam(params_enc,
-                                lr=args.lr),
-                                #momentum=args.momentum,
-                                #weight_decay=args.weight_decay),
-        "classifier": torch.optim.Adam(params_cls,
-                                lr=args.lr)}
-                                #momentum=args.momentum,
-                                #weight_decay=args.weight_decay)}
+    #    "encoder": torch.optim.Adam(params_enc,
+    #                            lr=args.lr),
+    #                            #momentum=args.momentum,
+    #                            #weight_decay=args.weight_decay),
+    #    "classifier": torch.optim.Adam(params_cls,
+    #                            lr=args.lr)}
+    #                            #momentum=args.momentum,
+    #                            #weight_decay=args.weight_decay)}
 
-    #optimizer = torch.optim.SGD(params,
-    #                            lr=args.lr,
-    #                            momentum=args.momentum,
-    #                            weight_decay=args.weight_decay)
+    optimizer = torch.optim.Adam(params,
+                                lr=args.lr)
+                                #momentum=args.momentum,
+                                #weight_decay=args.weight_decay)
     #optimizer = torch.optim.SGD(params,
     #                            lr=args.lr,
     #                            momentum=args.momentum,
@@ -194,7 +194,7 @@ def main(args):
 
         train_batch(model=model, src_train_batch=src_train_batch, tar_train_batch=tar_train_batch, 
                             src_train_dataloader=src_train_dataloader, tar_train_dataloader=tar_train_dataloader, 
-                            optimizers=optimizer_dict, criterion=criterion, cur_epoch=epoch, 
+                            optimizer=optimizer, criterion=criterion, cur_epoch=epoch, 
                             logger=wandb, args=args, backprop=is_backprop)
 
         count_itern_each_epoch += 1
