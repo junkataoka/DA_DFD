@@ -6,6 +6,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from scipy.interpolate import CubicSpline
+from scipy.io import loadmat
 from scipy.signal import spectrogram
 import os
 
@@ -171,9 +172,84 @@ def format_data_ims(file_name, fault_pattern, segment_length=2048):
     splitted_val = np.stack(np.array_split(val, N//segment_length))
 
     return splitted_val, np.repeat(label[fault_pattern], N//segment_length)
+
+def prepare_PU():
+
+    signal_size = 2048
+    root = "/data/home/jkataok1/DA_DFD/data/raw/PU"
+    #bearing_codes = ["K001", "KI14", "KI18", "KA04", "KA16", "KB23", "KB24"]
+    working_condtions = ["N15_M07_F10","N09_M07_F10","N15_M01_F10","N15_M07_F04"]
+
+    healthy_code = ["K001", "K002", "K003", "K004", "K005"]
+    outer_rind_code = ["KA04", "KA15", "KA16", "KA22", "KA30"]
+    inner_ring_code = ["KI01", "KI14", "KI16", "KI18", "KI21"]
+
+    bearing_codes = healthy_code + outer_rind_code + inner_ring_code
+
+    def data_load(filename,name):
+        '''
+        This function is mainly used to generate test data and training data.
+        filename:Data location
+        '''
+        fl = loadmat(filename)[name]
+        fl = fl[0][0][2][0][6][2]  #Take out the data
+        fl = fl.reshape(-1,1)
+        fl = (fl - fl.mean(axis=0)) / fl.std(axis=0)
+        arr_spectrogram = [] 
+        arr_signal = []
+        start,end = 0, signal_size
+        while end<=fl.shape[0]:
+            #data.append(fl[start:end])
+            signal = fl[start:end].reshape(-1)
+            f, t, sxx = spectrogram(signal, fs=2048, nperseg=128)
+            arr_spectrogram.append(sxx)
+            arr_signal.append(signal)
+            start += signal_size
+            end += signal_size
+
+        data_spectrogram = np.stack(arr_spectrogram, axis=0)
+        data_signal = np.stack(arr_signal)
+
+
+        return data_spectrogram, data_signal
+
+
+    def load_pu(root, bearing_codes, working_condtion):
+        data_spectrogram = []
+        data_signal = []
+        label = []
+        for i in range(len(bearing_codes)):
+            file_names = glob.glob(os.path.join(root,  bearing_codes[i], working_condtion + '*'))
+            for f in file_names:
+                f_name = os.path.basename(f).split('.')[0]
+
+                f_data_spectrogram, f_data_signal = data_load(f, f_name)
+                data_spectrogram.append(f_data_spectrogram)
+                data_signal.append(f_data_signal)
+                if bearing_codes[i] in healthy_code:
+                    label.append(np.repeat(0, len(f_data_spectrogram)))
+                elif bearing_codes[i] in outer_rind_code:
+                    label.append(np.repeat(1, len(f_data_spectrogram)))
+                elif bearing_codes[i] in inner_ring_code:
+                    label.append(np.repeat(2, len(f_data_spectrogram)))
+
+        data_signal = np.expand_dims(np.concatenate(data_signal, axis=0), axis=1)
+        data_spectrogram = np.expand_dims(np.concatenate(data_spectrogram), axis=1)
+        data_spectrogram = (data_spectrogram - data_spectrogram.mean(axis=(0, -2, -1), keepdims=True)) / (data_spectrogram.std(axis=(0, -2, -1), keepdims=True)+1e-8)
+        label = np.expand_dims(np.concatenate(label), axis=-1)
+
+        return data_spectrogram, data_signal, label
+
+    save_path = "/data/home/jkataok1/DA_DFD/data/processed/PU"
+    for i in range(len(working_condtions)):
+        data_spectrgram, data_signal, label = load_pu(root, bearing_codes, working_condtions[i])
+        np.savez(os.path.join(save_path, f'{i}_spectrogram.npz'), x=data_spectrgram, y=label)
+        np.savez(os.path.join(save_path, f'{i}.npz'), x=data_signal, y=label)
+
     
 def main():
-    prepare_cwru(2048, False, 2048, 128, "all")
+    prepare_PU()
+    #prepare_cwru(2048, False, 2048, 128, "all")
     #prepare_ims(2048, 2048, 128)
 
 

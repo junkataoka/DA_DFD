@@ -68,21 +68,18 @@ pretrain_gearbox2gearbox: loadmodule
 
 .PHONY: pretrain_PU2PU
 pretrain_PU2PU: loadmodule
-	sbatch pretrain_slurm_PU2PU.sh 0_spectrogram 1_spectrogram
-	#sbatch pretrain_slurm_PU2PU.sh 0_spectrogram 2_spectrogram; \
-	#sbatch pretrain_slurm_PU2PU.sh 0_spectrogram 3_spectrogram; \
-
-	#sbatch pretrain_slurm_PU2PU.sh 1_spectrogram 0_spectrogram; \
-	#sbatch pretrain_slurm_PU2PU.sh 1_spectrogram 2_spectrogram; \
-	#sbatch pretrain_slurm_PU2PU.sh 1_spectrogram 3_spectrogram; \
-
-	#sbatch pretrain_slurm_PU2PU.sh 2_spectrogram 0_spectrogram; \
-	#sbatch pretrain_slurm_PU2PU.sh 2_spectrogram 1_spectrogram; \
-	#sbatch pretrain_slurm_PU2PU.sh 2_spectrogram 3_spectrogram; \
-
-	#sbatch pretrain_slurm_PU2PU.sh 3_spectrogram 0_spectrogram; \
-	#sbatch pretrain_slurm_PU2PU.sh 3_spectrogram 1_spectrogram; \
-	#sbatch pretrain_slurm_PU2PU.sh 3_spectrogram 2_spectrogram; \
+	#sbatch pretrain_slurm_PU2PU.sh 1 0; \
+	sbatch pretrain_slurm_PU2PU.sh 2 0; \
+	sbatch pretrain_slurm_PU2PU.sh 3 0; \
+	sbatch pretrain_slurm_PU2PU.sh 0 1; \
+	sbatch pretrain_slurm_PU2PU.sh 3 1; \
+	sbatch pretrain_slurm_PU2PU.sh 2 1; \
+	sbatch pretrain_slurm_PU2PU.sh 0 2; \
+	sbatch pretrain_slurm_PU2PU.sh 1 2; \
+	sbatch pretrain_slurm_PU2PU.sh 3 2; \
+	sbatch pretrain_slurm_PU2PU.sh 0 3; \
+	sbatch pretrain_slurm_PU2PU.sh 1 3; \
+	sbatch pretrain_slurm_PU2PU.sh 2 3; \
 
 
 

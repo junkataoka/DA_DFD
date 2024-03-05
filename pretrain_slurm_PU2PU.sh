@@ -15,8 +15,9 @@ TAR="$2" # target domain
 module load cuda11.1/toolkit/11.1.1
 srun python src/main.py --src_data="PU" --tar_data="PU" --src_domain=$SRC --tar_domain=$TAR --lr=0.0001 \
                         --batch_size=128 --epochs=200  --input_time_dim=65 --input_freq_dim=18 --input_channel=1 --num_classes=7 \
-                        --pretrained --use_domain_adv \
-                        --use_tar_entropy
+                        --model="wdcnn" \
+                        #--pretrained --use_domain_adv \
+                        #--use_tar_entropy
 
 #srun python src/main.py --src_domain=$SRC --tar_domain=$TAR --lr=0.005 --batch_size=128 --epochs=600 --pretrained \
 #        --pretrained_path=$MODELPATH
