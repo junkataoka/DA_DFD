@@ -1,4 +1,5 @@
 # %%
+import numpy as np
 import torch.utils.data as Data
 from helper import (count_batch_on_large_dataset, weight_init, batch_norm_init, 
                     get_params, compute_threthold, compute_weights, define_param_groups,
@@ -172,12 +173,9 @@ def main(args):
                        "tar_acc": val_dict["tar_acc"], 
                        "epoch": epoch})
 
-            if not args.pretrained:
-                acc_name = "src_acc"
-            else:
-                acc_name = "tar_acc"
+            acc_name = "tar_acc"
 
-            if val_dict[acc_name] >= best_acc:
+            if np.round(val_dict[acc_name], 2) >= np.round(best_acc, 2):
                 best_acc = val_dict[acc_name]
                 wandb.log({f"best_{acc_name}": best_acc, "epoch": epoch})
 
