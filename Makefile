@@ -63,8 +63,8 @@ test: loadmodule
 ## Pretrain
 .PHONY: pretrain_gearbox2gearbox
 pretrain_gearbox2gearbox: loadmodule
-	sbatch pretrain_slurm_gearbox2gearbox.sh 0_spectrogram 1_spectrogram; \
-	sbatch pretrain_slurm_gearbox2gearbox.sh 1_spectrogram 0_spectrogram; \
+	sbatch pretrain_slurm_gearbox2gearbox.sh bearingset_0 bearingset_1; \
+	sbatch pretrain_slurm_gearbox2gearbox.sh bearingset_1 bearingset_0; \
 
 .PHONY: pretrain_PU2PU
 pretrain_PU2PU: loadmodule
