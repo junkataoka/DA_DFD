@@ -91,7 +91,7 @@ pretrain_CWRU2CWRU: loadmodule
 	sbatch pretrain_slurm_CWRU2CWRU.sh 1_all_spectrogram 0_all_spectrogram; \
 	sbatch pretrain_slurm_CWRU2CWRU.sh 2_all_spectrogram 0_all_spectrogram; \
 	sbatch pretrain_slurm_CWRU2CWRU.sh 3_all_spectrogram 0_all_spectrogram; \
-	#sbatch pretrain_slurm_CWRU2CWRU.sh 0_all_spectrogram 1_all_spectrogram; \
+	sbatch pretrain_slurm_CWRU2CWRU.sh 0_all_spectrogram 1_all_spectrogram; \
 	sbatch pretrain_slurm_CWRU2CWRU.sh 3_all_spectrogram 1_all_spectrogram; \
 	sbatch pretrain_slurm_CWRU2CWRU.sh 2_all_spectrogram 1_all_spectrogram; \
 	sbatch pretrain_slurm_CWRU2CWRU.sh 0_all_spectrogram 2_all_spectrogram; \

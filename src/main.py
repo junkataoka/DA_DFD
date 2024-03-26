@@ -31,7 +31,7 @@ parser.add_argument('--tar_domain', type=str, default="1", help='target domain')
 parser.add_argument('--log', type=str, default="log", help='log')
 parser.add_argument('--pretrained', action='store_true')
 parser.add_argument('--source_model_path', type=str, default="src_models", help='source model path')
-parser.add_argument('--warmup_epoch', type=int, default=1, help='warm up epoch size')
+parser.add_argument('--warmup_epoch', type=int, default=0, help='warm up epoch size')
 parser.add_argument('--model', type=str, default="ast", help='model name')
 parser.add_argument('--accum_iter', type=int, default=1, help='accumulation of iteration to comptue gradient')
 parser.add_argument('--input_channel', type=int, default=1, help='number of input channels')
@@ -89,6 +89,7 @@ def main(args):
                                         batch_size=args.batch_size, shuffle=True, drop_last=False) 
     
     # define model 
+    print("Loading the model: ", args.model)
     model = get_model(model_name=f"{args.model}", C_in=args.input_channel, 
                       class_num=args.num_classes,
                       input_time_dim=args.input_time_dim,

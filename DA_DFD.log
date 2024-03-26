@@ -2,8 +2,21 @@ wandb: Currently logged in as: kataoka0511 (junkataoka). Use `wandb login --relo
 wandb: wandb version 0.16.4 is available!  To upgrade, please run:
 wandb:  $ pip install wandb --upgrade
 wandb: Tracking run with wandb version 0.15.3
-wandb: Run data is saved locally in /data/home/jkataok1/DA_DFD/wandb/run-20240310_183708-vulqa74w
+wandb: Run data is saved locally in /data/home/jkataok1/DA_DFD/wandb/run-20240311_010903-prbcrwzq
 wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run log/PU3_spectrogramtoPU2_spectrogram_lr0.0001_e200_b128
+wandb: Syncing run log/gearboxbearingset_1togearboxbearingset_0_lr0.0001_e400_b128
 wandb: ⭐️ View project at https://wandb.ai/junkataoka/DA_DFD
-wandb: 🚀 View run at https://wandb.ai/junkataoka/DA_DFD/runs/vulqa74w
+wandb: 🚀 View run at https://wandb.ai/junkataoka/DA_DFD/runs/prbcrwzq
+wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
+wandb: 🚀 View run log/gearboxbearingset_1togearboxbearingset_0_lr0.0001_e400_b128 at: https://wandb.ai/junkataoka/DA_DFD/runs/prbcrwzq
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20240311_010903-prbcrwzq/logs
+Traceback (most recent call last):
+  File "src/main.py", line 201, in <module>
+    main(args)
+  File "src/main.py", line 95, in main
+    input_freq_dim=args.input_freq_dim)
+  File "/data/home/jkataok1/DA_DFD/src/construct_model.py", line 38, in get_model
+    raise ValueError("Model name not supported.")
+ValueError: Model name not supported.
+srun: error: compute130: task 0: Exited with exit code 1

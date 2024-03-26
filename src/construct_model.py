@@ -15,7 +15,9 @@ def get_model(model_name, C_in, class_num, checkpoint=None, input_time_dim=65, i
 
     if model_name == 'avatar':
         return WAVATAR(C_in, class_num)
-    elif 'ast' in model_name:
+
+    elif model_name == 'ast':
+
         model = ASTModel(label_dim=class_num, input_tdim=input_time_dim, input_fdim=input_freq_dim,
                          imagenet_pretrain=False, audioset_pretrain=False, C_in=C_in)
         if checkpoint:

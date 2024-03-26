@@ -4,6 +4,6 @@ log/*
 wandb
 src_models/*
 AST
-DA_DFD.log
-DA_DFD.txt
+*.log
+*.txt
 

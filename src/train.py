@@ -25,23 +25,20 @@ def batch_norm_init(m):
         m.reset_running_stats()
     
 def adv_loss(prob_p_dis, src=True, is_encoder=True):
-
+    # Clamp probabilities to avoid log(0) situation
+    
     if is_encoder:
         if src:
-            loss_d = -(1-prob_p_dis).log().mean()
+            loss_d = -(1 - prob_p_dis).log().mean()
         else:
             loss_d = -prob_p_dis.log().mean()
     else:
         if src:
             loss_d = -prob_p_dis.log().mean()
         else:
-            loss_d = -(1-prob_p_dis).log().mean()
+            loss_d = -(1 - prob_p_dis).log().mean()
 
     return loss_d
-
-    
-
-
 
 def train_batch(model, src_train_batch, tar_train_batch, 
                         src_train_dataloader, tar_train_dataloader, 
@@ -68,16 +65,12 @@ def train_batch(model, src_train_batch, tar_train_batch,
 
     # penalty parameter
     p = float(cur_epoch) / args.epochs
-    p2 = float(cur_epoch-args.warmup_epoch) / args.epochs
     alpha = torch.tensor(2. / (1. + np.exp(-10 * p)) - 1).cuda()
-    alpha2 = torch.tensor((np.exp(10 * p2) - 1) / (np.exp(10) - 1)).cuda()
     adjust_learning_rate(optimizers["encoder"], args.lr, cur_epoch, args.epochs) # adjust learning rate
     adjust_learning_rate(optimizers["classifier"], args.lr, cur_epoch, args.epochs) # adjust learning rate
     model.train()
 
     # Encoder
-    enc_src_dis_label = torch.ones(src_input.shape[0]).long().cuda()
-    enc_tar_dis_label = torch.zeros(tar_input.shape[0]).long().cuda()
     #src_input_a, src_input_b = augmentation(src_input.unsqueeze(1))
     #_, _, src_feat_a = model(src_input_a.squeeze(1), alpha, True)
     #_, _, src_feat_b = model(src_input_b.squeeze(1), alpha, True)
@@ -85,20 +78,18 @@ def train_batch(model, src_train_batch, tar_train_batch,
     tar_class, tar_dis, _ = model(tar_input, alpha, is_source=False if args.use_domain_bn else True)
 
     enc_nll_src_class = src_class.log()
-    enc_nll_src_dis = src_dis.log()
-    enc_nll_tar_dis = tar_dis.log()
-    enc_loss_tar_ent = entropyMaxLoss(tar_class, 0.9)
+    enc_loss_tar_ent = entropyMaxLoss(tar_class)
 
     enc_loss_src_cls = criterion(enc_nll_src_class, src_target.reshape(-1))
     #loss_src_contra = criterion_contra(src_feat_a, src_feat_b)
-    enc_loss_src_dis = criterion(enc_nll_src_dis, enc_src_dis_label)
-    enc_loss_tar_dis = criterion(enc_nll_tar_dis, enc_tar_dis_label)
+    enc_loss_src_dis = adv_loss(src_dis, src=True, is_encoder=True)
+    enc_loss_tar_dis = adv_loss(tar_dis, src=False, is_encoder=True)
 
     #loss = (loss_dis + loss_cls + loss_contra) / args.accum_iter
     loss = enc_loss_src_cls
     
     if args.use_domain_adv:
-        loss += alpha*(enc_loss_src_dis + enc_loss_tar_dis)
+        loss += alpha*0.5*(enc_loss_src_dis + enc_loss_tar_dis)
 
     if args.use_tar_entropy and cur_epoch > args.warmup_epoch:
         loss += alpha*enc_loss_tar_ent
@@ -117,22 +108,17 @@ def train_batch(model, src_train_batch, tar_train_batch,
     tar_class, tar_dis, _ = model(tar_input, alpha, is_source=False if args.use_domain_bn else True)
 
     cls_nll_src_class = src_class.log()
-    cls_nll_src_dis = src_dis.log()
-    cls_nll_tar_dis = tar_dis.log()
-    cls_loss_tar_ent = entropyMaxLoss(tar_class, 0.9)
-
     cls_loss_src_cls = criterion(cls_nll_src_class, src_target.reshape(-1))
-    #loss_src_contra = criterion_contra(src_feat_a, src_feat_b)
-    cls_loss_src_dis = criterion(cls_nll_src_dis, cls_src_dis_label)
-    cls_loss_tar_dis = criterion(cls_nll_tar_dis, cls_tar_dis_label)
 
-    if args.pretrained:
-        loss = cls_loss_src_cls
-    else:
-        loss = cls_loss_src_cls
+    cls_loss_tar_ent = entropyMaxLoss(tar_class)
+
+    cls_loss_src_dis = adv_loss(src_dis, src=True, is_encoder=False)
+    cls_loss_tar_dis = adv_loss(tar_dis, src=False, is_encoder=False)
+
+    loss = cls_loss_src_cls
     
     if args.use_domain_adv:
-        loss += alpha*(cls_loss_src_dis + cls_loss_tar_dis)
+        loss += alpha*0.5*(cls_loss_src_dis + cls_loss_tar_dis)
 
     if args.use_tar_entropy and cur_epoch > args.warmup_epoch:
         loss += alpha*cls_loss_tar_ent
